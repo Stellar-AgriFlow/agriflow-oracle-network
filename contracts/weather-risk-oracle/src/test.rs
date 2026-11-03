@@ -83,3 +83,28 @@ fn test_flood_trigger() {
     assert_eq!(client.check_flood_trigger(&region, &300), false);
 }
 
+#[test]
+fn test_rainfall_baseline_deviation() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let contract_id = env.register(WeatherRiskOracleContract, ());
+    let client = WeatherRiskOracleContractClient::new(&env, &contract_id);
+
+    let admin = Address::generate(&env);
+    let reporter = Address::generate(&env);
+
+    client.initialize(&admin);
+    client.add_reporter(&reporter);
+
+    let region = symbol_short!("KE_NAK");
+
+    // Deficit: 30mm rainfall vs 100mm historical average -> -70mm
+    client.report_weather(&reporter, &region, &30, &100, &70, &false);
+    assert_eq!(client.get_deviation_from_baseline(&region), -70);
+
+    // Excess: 140mm rainfall vs 100mm historical average -> +40mm
+    client.report_weather(&reporter, &region, &140, &100, &10, &false);
+    assert_eq!(client.get_deviation_from_baseline(&region), 40);
+}
+

@@ -216,6 +216,15 @@ impl WeatherRiskOracleContract {
         Ok(metrics.rainfall_mm >= flood_threshold_mm)
     }
 
+    /// Calculate net deviation of current rainfall from regional historical baseline in mm
+    pub fn get_deviation_from_baseline(
+        env: Env,
+        region: Symbol,
+    ) -> Result<i32, WeatherOracleError> {
+        let metrics = Self::get_metrics(env, region)?;
+        Ok((metrics.rainfall_mm as i32) - (metrics.historical_avg_rainfall_mm as i32))
+    }
+
     /// Fetch authorized reporters
     pub fn get_reporters(env: Env) -> Result<Vec<Address>, WeatherOracleError> {
         env.storage()
