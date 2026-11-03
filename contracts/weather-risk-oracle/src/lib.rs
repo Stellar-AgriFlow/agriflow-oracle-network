@@ -132,6 +132,39 @@ impl WeatherRiskOracleContract {
         Ok(())
     }
 
+    /// Update the long-term historical baseline rainfall for a regional microclimate zone
+    pub fn update_baseline_rainfall(
+        env: Env,
+        region: Symbol,
+        new_baseline_mm: u32,
+    ) -> Result<(), WeatherOracleError> {
+        let admin: Address = env
+            .storage()
+            .instance()
+            .get(&DataKey::Admin)
+            .ok_or(WeatherOracleError::NotInitialized)?;
+
+        admin.require_auth();
+
+        if let Some(mut metrics) = env
+            .storage()
+            .instance()
+            .get::<_, WeatherMetrics>(&DataKey::Metrics(region.clone()))
+        {
+            metrics.historical_avg_rainfall_mm = new_baseline_mm;
+            env.storage()
+                .instance()
+                .set(&DataKey::Metrics(region.clone()), &metrics);
+        }
+
+        env.events().publish(
+            (symbol_short!("w_base"), region),
+            new_baseline_mm,
+        );
+
+        Ok(())
+    }
+
     /// Submit verified parametric weather metrics for a region
     pub fn report_weather(
         env: Env,
