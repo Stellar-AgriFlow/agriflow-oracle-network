@@ -100,10 +100,26 @@ export class AgriOracleClient {
   }
 
   /**
-   * Helper to verify if parametric insurance conditions trigger a payout
+   * Helper to verify if parametric drought insurance conditions trigger a payout
    */
   async evaluateInsuranceTrigger(region: RegionCode, triggerThresholdDroughtIndex: number = 75): Promise<boolean> {
     const metrics = await this.getWeatherMetrics(region);
     return metrics.droughtIndex >= triggerThresholdDroughtIndex;
+  }
+
+  /**
+   * Helper to verify if parametric flood risk conditions trigger a payout
+   */
+  async evaluateFloodTrigger(region: RegionCode, floodThresholdRainfallMm: number = 150): Promise<boolean> {
+    const metrics = await this.getWeatherMetrics(region);
+    return metrics.rainfallMm >= floodThresholdRainfallMm;
+  }
+
+  /**
+   * Validates if a price feed timestamp is fresh relative to maximum acceptable age
+   */
+  static isPriceFresh(priceFeed: CommodityPriceFeed, maxAgeSeconds: number = 3600): boolean {
+    const now = Math.floor(Date.now() / 1000);
+    return now - priceFeed.timestamp <= maxAgeSeconds && !priceFeed.isStale;
   }
 }
