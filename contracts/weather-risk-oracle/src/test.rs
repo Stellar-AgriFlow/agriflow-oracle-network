@@ -133,3 +133,26 @@ fn test_weather_reporter_quorum() {
     assert!(!client.is_reporter(&unknown));
 }
 
+#[test]
+fn test_update_baseline_rainfall() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let contract_id = env.register(WeatherRiskOracleContract, ());
+    let client = WeatherRiskOracleContractClient::new(&env, &contract_id);
+
+    let admin = Address::generate(&env);
+    let reporter = Address::generate(&env);
+    let region = symbol_short!("NG_KANO");
+
+    client.initialize(&admin);
+    client.add_reporter(&reporter);
+
+    client.report_weather(&reporter, &region, &40, &100, &60, &false);
+    assert_eq!(client.get_deviation_from_baseline(&region), -60);
+
+    // Admin updates baseline from 100mm to 120mm
+    client.update_baseline_rainfall(&region, &120);
+    assert_eq!(client.get_deviation_from_baseline(&region), -80);
+}
+

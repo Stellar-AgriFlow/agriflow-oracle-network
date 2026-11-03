@@ -148,12 +148,12 @@ impl WeatherRiskOracleContract {
 
         if let Some(mut metrics) = env
             .storage()
-            .instance()
+            .persistent()
             .get::<_, WeatherMetrics>(&DataKey::Metrics(region.clone()))
         {
             metrics.historical_avg_rainfall_mm = new_baseline_mm;
             env.storage()
-                .instance()
+                .persistent()
                 .set(&DataKey::Metrics(region.clone()), &metrics);
         }
 

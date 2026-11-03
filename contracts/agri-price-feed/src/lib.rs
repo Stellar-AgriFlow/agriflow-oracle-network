@@ -143,14 +143,6 @@ impl AgriPriceFeedContract {
         reporter: Address,
         penalty_amount: i128,
     ) -> Result<(), OracleError> {
-        let admin: Address = env
-            .storage()
-            .instance()
-            .get(&DataKey::Admin)
-            .ok_or(OracleError::NotInitialized)?;
-
-        admin.require_auth();
-
         Self::remove_reporter(env.clone(), reporter.clone())?;
 
         env.events().publish(
