@@ -174,4 +174,28 @@ export class HistoricalPriceAggregator {
       bandwidthPercent,
     };
   }
+
+  /**
+   * Filters out extreme price outliers using Median Absolute Deviation (MAD)
+   * Highly robust against flash crashes, oracle spoofing, and skewed agricultural pricing
+   */
+  static filterOutliersMad(prices: number[], thresholdMultiplier: number = 3.0): number[] {
+    if (prices.length <= 3) return prices;
+
+    const sorted = [...prices].sort((a, b) => a - b);
+    const mid = Math.floor(sorted.length / 2);
+    const median = sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
+
+    const deviations = prices.map((p) => Math.abs(p - median));
+    const sortedDevs = [...deviations].sort((a, b) => a - b);
+    const mad = sortedDevs.length % 2 === 0 ? (sortedDevs[mid - 1] + sortedDevs[mid]) / 2 : sortedDevs[mid];
+
+    if (mad === 0) return prices;
+
+    // 1.4826 scale factor normalizes MAD to standard deviation
+    const normalMad = 1.4826 * mad;
+    const maxAllowedDeviation = thresholdMultiplier * normalMad;
+
+    return prices.filter((p) => Math.abs(p - median) <= maxAllowedDeviation);
+  }
 }
