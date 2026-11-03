@@ -61,3 +61,25 @@ fn test_invalid_drought_index_rejected() {
     assert_eq!(res.err(), Some(Ok(WeatherOracleError::InvalidMetrics)));
 }
 
+#[test]
+fn test_flood_trigger() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let contract_id = env.register(WeatherRiskOracleContract, ());
+    let client = WeatherRiskOracleContractClient::new(&env, &contract_id);
+
+    let admin = Address::generate(&env);
+    let reporter = Address::generate(&env);
+
+    client.initialize(&admin);
+    client.add_reporter(&reporter);
+
+    let region = symbol_short!("IN_PUNJ");
+    // Report 250mm torrential rainfall vs 80mm historical average
+    client.report_weather(&reporter, &region, &250, &80, &5, &false);
+
+    assert_eq!(client.check_flood_trigger(&region, &200), true);
+    assert_eq!(client.check_flood_trigger(&region, &300), false);
+}
+

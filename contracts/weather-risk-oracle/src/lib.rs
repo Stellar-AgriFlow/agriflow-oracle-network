@@ -206,6 +206,16 @@ impl WeatherRiskOracleContract {
         Ok(metrics.drought_index >= threshold)
     }
 
+    /// Check if regional rainfall meets or exceeds parametric flood payout threshold
+    pub fn check_flood_trigger(
+        env: Env,
+        region: Symbol,
+        flood_threshold_mm: u32,
+    ) -> Result<bool, WeatherOracleError> {
+        let metrics = Self::get_metrics(env, region)?;
+        Ok(metrics.rainfall_mm >= flood_threshold_mm)
+    }
+
     /// Fetch authorized reporters
     pub fn get_reporters(env: Env) -> Result<Vec<Address>, WeatherOracleError> {
         env.storage()
