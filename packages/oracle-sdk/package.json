@@ -1,0 +1,19 @@
+{
+  "name": "@agriflow/oracle-sdk",
+  "version": "0.1.0",
+  "description": "TypeScript SDK for consuming AgriFlow Oracle feeds on Stellar and Soroban",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc -w"
+  },
+  "dependencies": {
+    "@agriflow/types": "workspace:*",
+    "@stellar/stellar-sdk": "^12.3.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  }
+}
+
