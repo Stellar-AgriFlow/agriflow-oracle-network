@@ -137,3 +137,23 @@ fn test_reporter_quorum_and_verification() {
     assert!(!client.is_reporter(&outsider));
 }
 
+#[test]
+fn test_reporter_slashing() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let contract_id = env.register(AgriPriceFeedContract, ());
+    let client = AgriPriceFeedContractClient::new(&env, &contract_id);
+
+    let admin = Address::generate(&env);
+    let reporter = Address::generate(&env);
+
+    client.initialize(&admin, &symbol_short!("USD"));
+    client.add_reporter(&reporter);
+    assert_eq!(client.get_reporters_count(), 1);
+
+    client.slash_reporter(&reporter, &5000i128);
+    assert_eq!(client.get_reporters_count(), 0);
+    assert!(!client.is_reporter(&reporter));
+}
+
