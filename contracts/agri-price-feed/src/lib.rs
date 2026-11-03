@@ -137,6 +137,30 @@ impl AgriPriceFeedContract {
         Ok(())
     }
 
+    /// Slash and deactivate an oracle reporter node for malicious or outlier submissions
+    pub fn slash_reporter(
+        env: Env,
+        reporter: Address,
+        penalty_amount: i128,
+    ) -> Result<(), OracleError> {
+        let admin: Address = env
+            .storage()
+            .instance()
+            .get(&DataKey::Admin)
+            .ok_or(OracleError::NotInitialized)?;
+
+        admin.require_auth();
+
+        Self::remove_reporter(env.clone(), reporter.clone())?;
+
+        env.events().publish(
+            (symbol_short!("slash"), reporter),
+            penalty_amount,
+        );
+
+        Ok(())
+    }
+
     /// Submit a verified agricultural commodity price update
     pub fn set_price(
         env: Env,
