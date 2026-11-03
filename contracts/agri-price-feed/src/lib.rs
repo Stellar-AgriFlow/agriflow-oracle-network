@@ -33,6 +33,7 @@ pub enum DataKey {
     BaseCurrency,
     Reporters,
     Price(Symbol),
+    PriceHistory(Symbol),
 }
 
 const INSTANCE_BUMP_AMOUNT: u32 = 300_000;
@@ -180,6 +181,21 @@ impl AgriPriceFeedContract {
         };
 
         env.storage().persistent().set(&DataKey::Price(commodity.clone()), &data);
+
+        // Maintain historical price buffer for TWAP calculation
+        let mut history: Vec<i128> = env
+            .storage()
+            .persistent()
+            .get(&DataKey::PriceHistory(commodity.clone()))
+            .unwrap_or(Vec::new(&env));
+        if history.len() >= 5 {
+            history.pop_front();
+        }
+        history.push_back(price);
+        env.storage()
+            .persistent()
+            .set(&DataKey::PriceHistory(commodity.clone()), &history);
+
         env.storage().instance().extend_ttl(INSTANCE_LIFETIME_THRESHOLD, INSTANCE_BUMP_AMOUNT);
 
         env.events().publish(
@@ -212,6 +228,27 @@ impl AgriPriceFeedContract {
         }
 
         Ok(data)
+    }
+
+    /// Calculate Time-Weighted Average Price (TWAP) across recent price observations
+    pub fn get_twap(env: Env, commodity: Symbol) -> Result<i128, OracleError> {
+        let history: Vec<i128> = env
+            .storage()
+            .persistent()
+            .get(&DataKey::PriceHistory(commodity))
+            .ok_or(OracleError::FeedNotFound)?;
+
+        if history.is_empty() {
+            return Err(OracleError::FeedNotFound);
+        }
+
+        let mut sum: i128 = 0;
+        let count = history.len();
+        for p in history.iter() {
+            sum += p;
+        }
+
+        Ok(sum / (count as i128))
     }
 
     /// Get list of authorized reporters

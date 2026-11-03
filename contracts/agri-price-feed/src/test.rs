@@ -87,3 +87,28 @@ fn test_remove_reporter() {
     assert_eq!(res.err(), Some(Ok(OracleError::Unauthorized)));
 }
 
+#[test]
+fn test_twap_calculation() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let contract_id = env.register(AgriPriceFeedContract, ());
+    let client = AgriPriceFeedContractClient::new(&env, &contract_id);
+
+    let admin = Address::generate(&env);
+    let reporter = Address::generate(&env);
+
+    client.initialize(&admin, &symbol_short!("USD"));
+    client.add_reporter(&reporter);
+
+    let wheat = symbol_short!("WHEAT");
+
+    // Report prices: 500, 520, 540 -> Average = 520
+    client.set_price(&reporter, &wheat, &500, &2, &95);
+    client.set_price(&reporter, &wheat, &520, &2, &95);
+    client.set_price(&reporter, &wheat, &540, &2, &95);
+
+    let twap = client.get_twap(&wheat);
+    assert_eq!(twap, 520);
+}
+
