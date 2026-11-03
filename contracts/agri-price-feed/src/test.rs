@@ -112,3 +112,28 @@ fn test_twap_calculation() {
     assert_eq!(twap, 520);
 }
 
+#[test]
+fn test_reporter_quorum_and_verification() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let contract_id = env.register(AgriPriceFeedContract, ());
+    let client = AgriPriceFeedContractClient::new(&env, &contract_id);
+
+    let admin = Address::generate(&env);
+    let reporter1 = Address::generate(&env);
+    let reporter2 = Address::generate(&env);
+    let outsider = Address::generate(&env);
+
+    client.initialize(&admin, &symbol_short!("USD"));
+    assert_eq!(client.get_reporters_count(), 0);
+
+    client.add_reporter(&reporter1);
+    client.add_reporter(&reporter2);
+
+    assert_eq!(client.get_reporters_count(), 2);
+    assert!(client.is_reporter(&reporter1));
+    assert!(client.is_reporter(&reporter2));
+    assert!(!client.is_reporter(&outsider));
+}
+

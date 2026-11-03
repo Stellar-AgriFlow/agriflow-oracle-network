@@ -259,6 +259,31 @@ impl AgriPriceFeedContract {
             .ok_or(OracleError::NotInitialized)
     }
 
+    /// Returns the total number of authorized price reporting nodes
+    pub fn get_reporters_count(env: Env) -> u32 {
+        let reporters: Vec<Address> = env
+            .storage()
+            .instance()
+            .get(&DataKey::Reporters)
+            .unwrap_or(Vec::new(&env));
+        reporters.len()
+    }
+
+    /// Verifies if a given address is an authorized reporter
+    pub fn is_reporter(env: Env, reporter: Address) -> bool {
+        let reporters: Vec<Address> = env
+            .storage()
+            .instance()
+            .get(&DataKey::Reporters)
+            .unwrap_or(Vec::new(&env));
+        for r in reporters.iter() {
+            if r == reporter {
+                return true;
+            }
+        }
+        false
+    }
+
     /// Get oracle administrator address
     pub fn get_admin(env: Env) -> Result<Address, OracleError> {
         env.storage()
