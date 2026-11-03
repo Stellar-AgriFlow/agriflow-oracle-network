@@ -133,4 +133,45 @@ export class HistoricalPriceAggregator {
     const correlation = numerator / (Math.sqrt(denomA) * Math.sqrt(denomB));
     return Number(Math.max(-1, Math.min(1, correlation)).toFixed(4));
   }
+
+  /**
+   * Computes Bollinger Bands and volatility dispersion metrics for a commodity price series
+   */
+  static computeBollingerBands(
+    prices: number[],
+    multiplier: number = 2
+  ): {
+    sma: number;
+    upperBand: number;
+    lowerBand: number;
+    standardDeviation: number;
+    bandwidthPercent: number;
+  } {
+    if (prices.length === 0) {
+      return { sma: 0, upperBand: 0, lowerBand: 0, standardDeviation: 0, bandwidthPercent: 0 };
+    }
+
+    const n = prices.length;
+    const sma = prices.reduce((sum, p) => sum + p, 0) / n;
+
+    const variance =
+      prices.reduce((sum, p) => sum + Math.pow(p - sma, 2), 0) / (n > 1 ? n - 1 : 1);
+    const standardDeviation = Math.sqrt(variance);
+
+    const upperBand = Math.round(sma + multiplier * standardDeviation);
+    const lowerBand = Math.round(Math.max(0, sma - multiplier * standardDeviation));
+    const roundedSma = Math.round(sma);
+    const bandwidthPercent =
+      roundedSma > 0
+        ? Number((((upperBand - lowerBand) / roundedSma) * 100).toFixed(2))
+        : 0;
+
+    return {
+      sma: roundedSma,
+      upperBand,
+      lowerBand,
+      standardDeviation: Number(standardDeviation.toFixed(2)),
+      bandwidthPercent,
+    };
+  }
 }
