@@ -108,3 +108,28 @@ fn test_rainfall_baseline_deviation() {
     assert_eq!(client.get_deviation_from_baseline(&region), 40);
 }
 
+#[test]
+fn test_weather_reporter_quorum() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let contract_id = env.register(WeatherRiskOracleContract, ());
+    let client = WeatherRiskOracleContractClient::new(&env, &contract_id);
+
+    let admin = Address::generate(&env);
+    let r1 = Address::generate(&env);
+    let r2 = Address::generate(&env);
+    let unknown = Address::generate(&env);
+
+    client.initialize(&admin);
+    assert_eq!(client.get_reporters_count(), 0);
+
+    client.add_reporter(&r1);
+    client.add_reporter(&r2);
+
+    assert_eq!(client.get_reporters_count(), 2);
+    assert!(client.is_reporter(&r1));
+    assert!(client.is_reporter(&r2));
+    assert!(!client.is_reporter(&unknown));
+}
+

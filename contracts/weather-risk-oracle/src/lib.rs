@@ -233,6 +233,31 @@ impl WeatherRiskOracleContract {
             .ok_or(WeatherOracleError::NotInitialized)
     }
 
+    /// Returns the total count of authorized weather reporters
+    pub fn get_reporters_count(env: Env) -> u32 {
+        let reporters: Vec<Address> = env
+            .storage()
+            .instance()
+            .get(&DataKey::Reporters)
+            .unwrap_or(Vec::new(&env));
+        reporters.len()
+    }
+
+    /// Verifies if a given address is an authorized weather reporter
+    pub fn is_reporter(env: Env, reporter: Address) -> bool {
+        let reporters: Vec<Address> = env
+            .storage()
+            .instance()
+            .get(&DataKey::Reporters)
+            .unwrap_or(Vec::new(&env));
+        for r in reporters.iter() {
+            if r == reporter {
+                return true;
+            }
+        }
+        false
+    }
+
     /// Fetch admin address
     pub fn get_admin(env: Env) -> Result<Address, WeatherOracleError> {
         env.storage()
