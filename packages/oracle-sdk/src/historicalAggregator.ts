@@ -104,4 +104,33 @@ export class HistoricalPriceAggregator {
 
     return prices.filter((p) => Math.abs(p - median) <= maxDevMultiplier * medDev * 2.5);
   }
+
+  /**
+   * Computes Pearson correlation coefficient between two commodity price series
+   * Returns value between -1.0 and +1.0
+   */
+  static computePearsonCorrelation(seriesA: number[], seriesB: number[]): number {
+    const n = Math.min(seriesA.length, seriesB.length);
+    if (n < 2) return 0;
+
+    const meanA = seriesA.slice(0, n).reduce((sum, v) => sum + v, 0) / n;
+    const meanB = seriesB.slice(0, n).reduce((sum, v) => sum + v, 0) / n;
+
+    let numerator = 0;
+    let denomA = 0;
+    let denomB = 0;
+
+    for (let i = 0; i < n; i++) {
+      const diffA = seriesA[i] - meanA;
+      const diffB = seriesB[i] - meanB;
+      numerator += diffA * diffB;
+      denomA += diffA * diffA;
+      denomB += diffB * diffB;
+    }
+
+    if (denomA === 0 || denomB === 0) return 0;
+
+    const correlation = numerator / (Math.sqrt(denomA) * Math.sqrt(denomB));
+    return Number(Math.max(-1, Math.min(1, correlation)).toFixed(4));
+  }
 }
