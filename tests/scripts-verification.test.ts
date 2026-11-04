@@ -32,7 +32,7 @@ describe('Operational & Benchmarking Scripts Suite', () => {
     expect(cfg.allDeployed).toBe(true);
     expect(cfg.priceFeedContract).toBe('CDE2KRZ2ZYZ2B7RT4BA4IPMTHBMUROWSSBCG2RGXM6MDS5GGAKR3GEI7');
     expect(cfg.weatherOracleContract).toBe('CCC6PHP7LADEVOW4AOLSRXHC6WOK2LW3ZJQX4EEYKR42GR3HXNSFIPHN');
-    expect(cfg.stakingContract).toBe('CA7X2E2V5D6E7YBNZMRJ5E8WKQP4K5M4X6N3R8B2C9L1A4G5H7J3K');
+    expect(cfg.stakingContract).toBe('CCFDDSJPQS3IKRT553NDGTQDLFIIR4TAF7JU6MFYCEELPGTSBG7YQODN');
     expect(cfg.rpcEndpoint).toBe('https://soroban-testnet.stellar.org');
   });
 });

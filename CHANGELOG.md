@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Parametric weather and drought risk index oracle commiting real-time satellite telemetry for 5 major global basins (Northern Nigeria, Kenya, Ghana, Côte d'Ivoire, Brazil).
     - Programmatic payout evaluation for zero-claim crop insurance policies (`check_drought_trigger`, `check_flood_trigger`).
     - Multi-reporter median consensus calculation.
-  - `OracleStakingContract` (`CA7X2E2V5D6E7YBNZMRJ5E8WKQP4K5M4X6N3R8B2C9L1A4G5H7J3K`):
+  - `OracleStakingContract` (`CCFDDSJPQS3IKRT553NDGTQDLFIIR4TAF7JU6MFYCEELPGTSBG7YQODN`):
     - Decentralized validator economic security mechanism with mandatory 5,000 XLM collateral staking.
     - 17,280-ledger unbonding delay queue protecting against hit-and-run exploits.
     - 10% collateral slashing penalty for reporting deviances greater than 5% from quorum median.

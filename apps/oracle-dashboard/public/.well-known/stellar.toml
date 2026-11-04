@@ -37,7 +37,7 @@ NAME = "WeatherRiskOracleContract"
 DESC = "Parametric weather and drought risk index oracle with automatic programmatic insurance payout triggers on Soroban"
 
 [[CONTRACTS]]
-CONTRACT_ID = "CA7X2E2V5D6E7YBNZMRJ5E8WKQP4K5M4X6N3R8B2C9L1A4G5H7J3K"
+CONTRACT_ID = "CCFDDSJPQS3IKRT553NDGTQDLFIIR4TAF7JU6MFYCEELPGTSBG7YQODN"
 NAME = "OracleStakingContract"
 DESC = "Decentralized economic security contract with validator collateral staking (5,000 XLM), unbonding delay, and deviance slashing on Soroban"
 

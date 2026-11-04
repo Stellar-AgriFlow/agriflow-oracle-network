@@ -23,7 +23,7 @@ describe('SEP-0001 stellar.toml Specification', () => {
     expect(content).toContain('CCC6PHP7LADEVOW4AOLSRXHC6WOK2LW3ZJQX4EEYKR42GR3HXNSFIPHN');
     expect(content).toContain('WeatherRiskOracleContract');
 
-    expect(content).toContain('CA7X2E2V5D6E7YBNZMRJ5E8WKQP4K5M4X6N3R8B2C9L1A4G5H7J3K');
+    expect(content).toContain('CCFDDSJPQS3IKRT553NDGTQDLFIIR4TAF7JU6MFYCEELPGTSBG7YQODN');
     expect(content).toContain('OracleStakingContract');
   });
 

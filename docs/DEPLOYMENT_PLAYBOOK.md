@@ -36,7 +36,7 @@ agriflow-node register \
   --secret "SCXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" \
   --stake 5000 \
   --rpc-url "https://soroban-testnet.stellar.org" \
-  --contract-id "CA7X2E2V5D6E7YBNZMRJ5E8WKQP4K5M4X6N3R8B2C9L1A4G5H7J3K"
+  --contract-id "CCFDDSJPQS3IKRT553NDGTQDLFIIR4TAF7JU6MFYCEELPGTSBG7YQODN"
 
 # Start automated reporting daemon
 agriflow-node start \

@@ -68,7 +68,7 @@ The AgriFlow Oracle Network is a decentralized, tamper-resistant commodity bench
   - `check_drought_trigger(region, threshold)`: Evaluates boolean condition for programmatic policy payout.
   - `check_flood_trigger(region, threshold)`: Evaluates excess precipitation condition.
 
-### 2.3 OracleStakingContract (`CA7X2E2V5D6E7YBNZMRJ5E8WKQP4K5M4X6N3R8B2C9L1A4G5H7J3K`)
+### 2.3 OracleStakingContract (`CCFDDSJPQS3IKRT553NDGTQDLFIIR4TAF7JU6MFYCEELPGTSBG7YQODN`)
 - **Key Methods**:
   - `register_operator(operator, amount)`: Locks initial collateral (minimum 5,000 XLM).
   - `request_unbond(operator, amount)`: Places funds in 17,280-ledger unbonding delay queue.

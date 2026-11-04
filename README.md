@@ -1,7 +1,9 @@
 # AgriFlow Oracle Network
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Stellar-AgriFlow/StellarAgriFlow/main/apps/web/public/logo.png" alt="AgriFlow Logo" width="130" height="130" />
+  <a href="https://stellar-agriflow.vercel.app">
+    <img src="./logo.svg" alt="AgriFlow Protocol Logo" width="130" height="130" />
+  </a>
 </p>
 
 <h2 align="center">Institutional-Grade Agricultural Commodity Benchmarks & Parametric Climate Risk Protocol on Stellar & Soroban</h2>
@@ -44,7 +46,7 @@ All three Soroban smart contracts are live, fully initialized, and actively rece
 | :--- | :--- | :--- | :--- |
 | **`AgriPriceFeedContract`** | `CDE2KRZ2ZYZ2B7RT4BA4IPMTHBMUROWSSBCG2RGXM6MDS5GGAKR3GEI7` | [Stellar Expert Explorer](https://stellar.expert/explorer/testnet/contract/CDE2KRZ2ZYZ2B7RT4BA4IPMTHBMUROWSSBCG2RGXM6MDS5GGAKR3GEI7) | Spot commodity benchmarks, TWAP, and staleness SLAs |
 | **`WeatherRiskOracleContract`** | `CCC6PHP7LADEVOW4AOLSRXHC6WOK2LW3ZJQX4EEYKR42GR3HXNSFIPHN` | [Stellar Expert Explorer](https://stellar.expert/explorer/testnet/contract/CCC6PHP7LADEVOW4AOLSRXHC6WOK2LW3ZJQX4EEYKR42GR3HXNSFIPHN) | Regional rainfall, drought & flood parametric indices |
-| **`OracleStakingContract`** | `CA7X2E2V5D6E7YBNZMRJ5E8WKQP4K5M4X6N3R8B2C9L1A4G5H7J3K` | [Stellar Expert Explorer](https://stellar.expert/explorer/testnet/contract/CA7X2E2V5D6E7YBNZMRJ5E8WKQP4K5M4X6N3R8B2C9L1A4G5H7J3K) | Validator collateral staking, unbonding queue & slashing |
+| **`OracleStakingContract`** | `CCFDDSJPQS3IKRT553NDGTQDLFIIR4TAF7JU6MFYCEELPGTSBG7YQODN` | [Stellar Expert Explorer](https://stellar.expert/explorer/testnet/contract/CCFDDSJPQS3IKRT553NDGTQDLFIIR4TAF7JU6MFYCEELPGTSBG7YQODN) | Validator collateral staking, unbonding queue & slashing |
 | **Primary Reporter Node** | `GCL7UUKY7EE3OL5ROR3V3PFPRONI7RBCJ5S5BRFF4SO5LBDUH3QEXBTY` | [Stellar Expert Explorer](https://stellar.expert/explorer/testnet/account/GCL7UUKY7EE3OL5ROR3V3PFPRONI7RBCJ5S5BRFF4SO5LBDUH3QEXBTY) | Hardware Nitro Enclave Authorized Attestation Signer |
 
 ### Verified Testnet Ledger Transactions
@@ -223,7 +225,7 @@ Configure the following environment variables in the Vercel Dashboard (`Settings
 | :--- | :--- | :--- |
 | `NEXT_PUBLIC_PRICE_FEED_CONTRACT` | `CDE2KRZ2ZYZ2B7RT4BA4IPMTHBMUROWSSBCG2RGXM6MDS5GGAKR3GEI7` | Testnet Price Feed Contract ID |
 | `NEXT_PUBLIC_WEATHER_ORACLE_CONTRACT` | `CCC6PHP7LADEVOW4AOLSRXHC6WOK2LW3ZJQX4EEYKR42GR3HXNSFIPHN` | Testnet Weather Oracle Contract ID |
-| `NEXT_PUBLIC_STAKING_CONTRACT` | `CA7X2E2V5D6E7YBNZMRJ5E8WKQP4K5M4X6N3R8B2C9L1A4G5H7J3K` | Testnet Validator Staking Contract ID |
+| `NEXT_PUBLIC_STAKING_CONTRACT` | `CCFDDSJPQS3IKRT553NDGTQDLFIIR4TAF7JU6MFYCEELPGTSBG7YQODN` | Testnet Validator Staking Contract ID |
 | `NEXT_PUBLIC_SOROBAN_RPC_URL` | `https://soroban-testnet.stellar.org` | Stellar Soroban RPC Endpoint |
 | `NEXT_PUBLIC_STELLAR_NETWORK_PASSPHRASE` | `Test SDF Network ; September 2015` | Testnet Network Identifier |
 | `NEXT_PUBLIC_EXPLORER_URL` | `https://stellar.expert/explorer/testnet` | Block Explorer URL |
@@ -310,7 +312,7 @@ console.log(`Drought Index: ${weather.droughtIndex}/100, Status: ${weather.statu
 
 // 3. Query validator staking collateral and SLA
 const staking = new OracleStakingClient({
-  contractId: 'CA7X2E2V5D6E7YBNZMRJ5E8WKQP4K5M4X6N3R8B2C9L1A4G5H7J3K',
+  contractId: 'CCFDDSJPQS3IKRT553NDGTQDLFIIR4TAF7JU6MFYCEELPGTSBG7YQODN',
   rpcUrl: 'https://soroban-testnet.stellar.org',
 });
 const operator = await staking.getOperator('GCL7UUKY7EE3OL5ROR3V3PFPRONI7RBCJ5S5BRFF4SO5LBDUH3QEXBTY');

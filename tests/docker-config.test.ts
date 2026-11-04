@@ -14,7 +14,7 @@ describe('Docker & Container Orchestration Suite', () => {
     expect(content).toContain('oracle-dashboard:');
     expect(content).toContain('prometheus:');
     expect(content).toContain('CDE2KRZ2ZYZ2B7RT4BA4IPMTHBMUROWSSBCG2RGXM6MDS5GGAKR3GEI7');
-    expect(content).toContain('CA7X2E2V5D6E7YBNZMRJ5E8WKQP4K5M4X6N3R8B2C9L1A4G5H7J3K');
+    expect(content).toContain('CCFDDSJPQS3IKRT553NDGTQDLFIIR4TAF7JU6MFYCEELPGTSBG7YQODN');
   });
 
   it('validates Dockerfile.relayer and Dockerfile.dashboard exist', () => {
