@@ -308,4 +308,80 @@ export class HistoricalPriceAggregator {
       seasonalityAmplitudePercent: isFinite(seasonalityAmplitudePercent) ? seasonalityAmplitudePercent : 0,
     };
   }
+
+  /**
+   * Computes Historical Value-at-Risk (VaR) and Conditional VaR (Expected Shortfall / CVaR)
+   * Essential for setting agricultural loan-to-value (LTV) limits and liquidation thresholds.
+   */
+  static computeValueAtRisk(
+    prices: number[],
+    confidenceLevel: number = 0.95,
+    portfolioValueUsd: number = 10000
+  ): {
+    varPercent: number;
+    varAmountUsd: number;
+    cvarPercent: number;
+    cvarAmountUsd: number;
+    observationsCount: number;
+  } {
+    if (prices.length < 3) {
+      return {
+        varPercent: 0,
+        varAmountUsd: 0,
+        cvarPercent: 0,
+        cvarAmountUsd: 0,
+        observationsCount: prices.length,
+      };
+    }
+
+    // Compute simple percentage price returns
+    const returns: number[] = [];
+    for (let i = 1; i < prices.length; i++) {
+      const prev = prices[i - 1];
+      const curr = prices[i];
+      if (prev > 0) {
+        returns.push((curr - prev) / prev);
+      }
+    }
+
+    if (returns.length === 0) {
+      return {
+        varPercent: 0,
+        varAmountUsd: 0,
+        cvarPercent: 0,
+        cvarAmountUsd: 0,
+        observationsCount: 0,
+      };
+    }
+
+    // Sort returns in ascending order (worst losses first)
+    const sortedReturns = [...returns].sort((a, b) => a - b);
+
+    // Alpha percentile index
+    const alpha = 1 - confidenceLevel;
+    const percentileIndex = Math.max(0, Math.floor(alpha * sortedReturns.length));
+    const varValue = sortedReturns[percentileIndex];
+
+    // VaR is expressed as positive percentage loss
+    const varPercent = Number((Math.max(0, -varValue) * 100).toFixed(2));
+    const varAmountUsd = Number(((varPercent / 100) * portfolioValueUsd).toFixed(2));
+
+    // CVaR (Expected Shortfall) is the average of returns at or below the VaR cutoff
+    const tailLosses = sortedReturns.slice(0, percentileIndex + 1);
+    const avgTailLoss =
+      tailLosses.length > 0
+        ? tailLosses.reduce((acc, r) => acc + r, 0) / tailLosses.length
+        : varValue;
+
+    const cvarPercent = Number((Math.max(0, -avgTailLoss) * 100).toFixed(2));
+    const cvarAmountUsd = Number(((cvarPercent / 100) * portfolioValueUsd).toFixed(2));
+
+    return {
+      varPercent,
+      varAmountUsd,
+      cvarPercent,
+      cvarAmountUsd,
+      observationsCount: returns.length,
+    };
+  }
 }
