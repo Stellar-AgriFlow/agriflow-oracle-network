@@ -1,4 +1,10 @@
-import { CommodityPriceDb } from './storage/commodityDb';
+export interface CommodityObservationDb {
+  getObservations?(
+    commodity: string,
+    start: number,
+    end: number
+  ): Promise<Array<{ price: number; timestamp: number }>> | Array<{ price: number; timestamp: number }>;
+}
 
 export interface CachedTwap {
   commodity: string;
@@ -10,10 +16,10 @@ export interface CachedTwap {
 
 export class TwapWorker {
   private cache: Map<string, CachedTwap> = new Map();
-  private db?: CommodityPriceDb;
+  private db?: CommodityObservationDb;
   private cacheTtlSeconds: number;
 
-  constructor(db?: CommodityPriceDb, cacheTtlSeconds: number = 300) {
+  constructor(db?: CommodityObservationDb, cacheTtlSeconds: number = 300) {
     this.db = db;
     this.cacheTtlSeconds = cacheTtlSeconds;
   }
@@ -62,9 +68,9 @@ export class TwapWorker {
     const now = Math.floor(Date.now() / 1000);
     let obs = customObservations;
 
-    if (!obs && this.db) {
+    if (!obs && this.db && typeof this.db.getObservations === 'function') {
       const raw = await this.db.getObservations(commodity, now - windowSeconds, now);
-      obs = raw.map((r) => ({ price: r.price, timestamp: r.timestamp }));
+      obs = (raw || []).map((r: { price: number; timestamp: number }) => ({ price: r.price, timestamp: r.timestamp }));
     }
 
     const twap = this.calculateTwapFromSeries(obs || [], windowSeconds, now);
