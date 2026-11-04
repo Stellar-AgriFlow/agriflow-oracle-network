@@ -3,6 +3,7 @@ resolver = "2"
 members = [
     "agri-price-feed",
     "weather-risk-oracle",
+    "oracle-staking",
 ]
 
 [profile.release]
@@ -14,4 +15,3 @@ debug-assertions = false
 panic = "abort"
 codegen-units = 1
 lto = true
-
