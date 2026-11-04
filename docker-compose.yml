@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  oracle-relayer:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.relayer
+    container_name: agriflow-oracle-relayer
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    environment:
+      - NODE_ENV=production
+      - STELLAR_NETWORK=TESTNET
+      - SOROBAN_RPC_URL=https://soroban-testnet.stellar.org
+      - NETWORK_PASSPHRASE=Test SDF Network ; September 2015
+      - PRICE_FEED_CONTRACT_ID=CDE2KRZ2ZYZ2B7RT4BA4IPMTHBMUROWSSBCG2RGXM6MDS5GGAKR3GEI7
+      - WEATHER_ORACLE_CONTRACT_ID=CCC6PHP7LADEVOW4AOLSRXHC6WOK2LW3ZJQX4EEYKR42GR3HXNSFIPHN
+      - STAKING_CONTRACT_ID=CA7X2E2V5D6E7YBNZMRJ5E8WKQP4K5M4X6N3R8B2C9L1A4G5H7J3K
+      - RELAYER_SECRET_KEY=SCL7UUKY7EE3OL5ROR3V3PFPRONI7RBCJ5S5BRFF4SO5LBDUH3QEXBTY
+      - TELEMETRY_PORT=9090
+      - REPORT_INTERVAL_SECONDS=300
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    networks:
+      - agriflow-net
+
+  oracle-dashboard:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.dashboard
+    container_name: agriflow-oracle-dashboard
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_PRICE_FEED_CONTRACT=CDE2KRZ2ZYZ2B7RT4BA4IPMTHBMUROWSSBCG2RGXM6MDS5GGAKR3GEI7
+      - NEXT_PUBLIC_WEATHER_ORACLE_CONTRACT=CCC6PHP7LADEVOW4AOLSRXHC6WOK2LW3ZJQX4EEYKR42GR3HXNSFIPHN
+      - NEXT_PUBLIC_STAKING_CONTRACT=CA7X2E2V5D6E7YBNZMRJ5E8WKQP4K5M4X6N3R8B2C9L1A4G5H7J3K
+      - NEXT_PUBLIC_SOROBAN_RPC_URL=https://soroban-testnet.stellar.org
+    depends_on:
+      - oracle-relayer
+    networks:
+      - agriflow-net
+
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    container_name: agriflow-prometheus
+    restart: unless-stopped
+    ports:
+      - "9091:9090"
+    volumes:
+      - ./docker/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    depends_on:
+      - oracle-relayer
+    networks:
+      - agriflow-net
+
+networks:
+  agriflow-net:
+    driver: bridge
