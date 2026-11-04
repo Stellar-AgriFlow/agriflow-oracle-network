@@ -384,4 +384,68 @@ export class HistoricalPriceAggregator {
       observationsCount: returns.length,
     };
   }
+
+  /**
+   * Computes Sharpe Ratio and Downside Deviation (Sortino Ratio) for agricultural portfolio risk benchmarking
+   */
+  static computeSharpeAndSortino(
+    returns: number[],
+    riskFreeRateAnnualPercent: number = 4.0,
+    targetReturnAnnualPercent: number = 0.0,
+    periodsPerYear: number = 252
+  ): {
+    annualizedReturnPercent: number;
+    annualizedVolatilityPercent: number;
+    downsideDeviationPercent: number;
+    sharpeRatio: number;
+    sortinoRatio: number;
+  } {
+    if (returns.length < 2) {
+      return {
+        annualizedReturnPercent: 0,
+        annualizedVolatilityPercent: 0,
+        downsideDeviationPercent: 0,
+        sharpeRatio: 0,
+        sortinoRatio: 0,
+      };
+    }
+
+    const mean = returns.reduce((a, b) => a + b, 0) / returns.length;
+    const variance =
+      returns.reduce((acc, r) => acc + Math.pow(r - mean, 2), 0) / (returns.length - 1);
+    const stdDev = Math.sqrt(variance);
+
+    // Downside deviation only measures negative deviations from target
+    const targetPeriodReturn = targetReturnAnnualPercent / 100 / periodsPerYear;
+    const downsideSquaredSum = returns.reduce((acc, r) => {
+      const underperformance = Math.min(0, r - targetPeriodReturn);
+      return acc + Math.pow(underperformance, 2);
+    }, 0);
+    const downsideDev = Math.sqrt(downsideSquaredSum / returns.length);
+
+    const annualizedReturnPercent = Number((mean * periodsPerYear * 100).toFixed(2));
+    const annualizedVolatilityPercent = Number((stdDev * Math.sqrt(periodsPerYear) * 100).toFixed(2));
+    const downsideDeviationPercent = Number((downsideDev * Math.sqrt(periodsPerYear) * 100).toFixed(2));
+
+    const excessReturn = annualizedReturnPercent - riskFreeRateAnnualPercent;
+    const targetExcessReturn = annualizedReturnPercent - targetReturnAnnualPercent;
+
+    const sharpeRatio =
+      annualizedVolatilityPercent > 0
+        ? Number((excessReturn / annualizedVolatilityPercent).toFixed(2))
+        : 0;
+
+    const sortinoRatio =
+      downsideDeviationPercent > 0
+        ? Number((targetExcessReturn / downsideDeviationPercent).toFixed(2))
+        : 0;
+
+    return {
+      annualizedReturnPercent,
+      annualizedVolatilityPercent,
+      downsideDeviationPercent,
+      sharpeRatio,
+      sortinoRatio,
+    };
+  }
 }
