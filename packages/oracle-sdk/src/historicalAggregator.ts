@@ -448,4 +448,86 @@ export class HistoricalPriceAggregator {
       sortinoRatio,
     };
   }
+
+  /**
+   * Computes Maximum Drawdown (MDD) and Calmar Ratio for agricultural risk stress-testing
+   */
+  static computeMaximumDrawdownAndCalmar(
+    prices: number[],
+    periodsPerYear: number = 252
+  ): {
+    maxDrawdownPercent: number;
+    peakPrice: number;
+    troughPrice: number;
+    peakIndex: number;
+    troughIndex: number;
+    annualizedReturnPercent: number;
+    calmarRatio: number;
+  } {
+    if (prices.length < 2) {
+      return {
+        maxDrawdownPercent: 0,
+        peakPrice: prices[0] || 0,
+        troughPrice: prices[0] || 0,
+        peakIndex: 0,
+        troughIndex: 0,
+        annualizedReturnPercent: 0,
+        calmarRatio: 0,
+      };
+    }
+
+    let runningMax = prices[0];
+    let runningMaxIdx = 0;
+    let maxDrawdown = 0;
+    let peakPrice = prices[0];
+    let troughPrice = prices[0];
+    let peakIndex = 0;
+    let troughIndex = 0;
+
+    for (let i = 1; i < prices.length; i++) {
+      const current = prices[i];
+      if (current > runningMax) {
+        runningMax = current;
+        runningMaxIdx = i;
+      } else {
+        const drawdown = (runningMax - current) / runningMax;
+        if (drawdown > maxDrawdown) {
+          maxDrawdown = drawdown;
+          peakPrice = runningMax;
+          troughPrice = current;
+          peakIndex = runningMaxIdx;
+          troughIndex = i;
+        }
+      }
+    }
+
+    const firstPrice = prices[0];
+    const lastPrice = prices[prices.length - 1];
+    let annualizedReturnPercent = 0;
+
+    if (firstPrice > 0 && lastPrice > 0) {
+      const years = (prices.length - 1) / periodsPerYear;
+      if (years > 0) {
+        annualizedReturnPercent = Number(
+          ((Math.pow(lastPrice / firstPrice, 1 / years) - 1) * 100).toFixed(2)
+        );
+      }
+    }
+
+    const maxDrawdownPercent = Number((maxDrawdown * 100).toFixed(2));
+    const calmarRatio =
+      maxDrawdownPercent > 0
+        ? Number((annualizedReturnPercent / maxDrawdownPercent).toFixed(2))
+        : 0;
+
+    return {
+      maxDrawdownPercent,
+      peakPrice,
+      troughPrice,
+      peakIndex,
+      troughIndex,
+      annualizedReturnPercent,
+      calmarRatio,
+    };
+  }
 }
