@@ -24,4 +24,34 @@ describe('Oracle Consensus & Operator Documentation', () => {
     expect(content).toContain('GET /metrics');
     expect(content).toContain('docker run -d --name oracle-node');
   });
+
+  it('validates ARCHITECTURE.md defines system layers and all 3 Soroban contracts', () => {
+    const filePath = path.join(docsDir, 'ARCHITECTURE.md');
+    expect(fs.existsSync(filePath)).toBe(true);
+
+    const content = fs.readFileSync(filePath, 'utf8');
+    expect(content).toContain('AgriPriceFeedContract');
+    expect(content).toContain('WeatherRiskOracleContract');
+    expect(content).toContain('OracleStakingContract');
+  });
+
+  it('validates SECURITY_MODEL.md details threat taxonomy and mitigations', () => {
+    const filePath = path.join(docsDir, 'SECURITY_MODEL.md');
+    expect(fs.existsSync(filePath)).toBe(true);
+
+    const content = fs.readFileSync(filePath, 'utf8');
+    expect(content).toContain('Flash Crash / Feed Spoofing');
+    expect(content).toContain('Sybil Node Quorum Hijack');
+    expect(content).toContain('17,280-ledger unbonding queue');
+  });
+
+  it('validates DEPLOYMENT_PLAYBOOK.md provides Docker and CLI commands', () => {
+    const filePath = path.join(docsDir, 'DEPLOYMENT_PLAYBOOK.md');
+    expect(fs.existsSync(filePath)).toBe(true);
+
+    const content = fs.readFileSync(filePath, 'utf8');
+    expect(content).toContain('docker compose up -d');
+    expect(content).toContain('agriflow-node register');
+    expect(content).toContain('http://localhost:9090/healthz');
+  });
 });
