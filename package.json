@@ -7,7 +7,8 @@
     "build": "turbo run build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
-    "test": "turbo run test",
+    "test": "vitest run",
+    "test:all": "vitest run && cargo test --manifest-path contracts/Cargo.toml",
     "contracts:build": "cargo build --manifest-path contracts/Cargo.toml --target wasm32-unknown-unknown --release",
     "contracts:test": "cargo test --manifest-path contracts/Cargo.toml"
   },
