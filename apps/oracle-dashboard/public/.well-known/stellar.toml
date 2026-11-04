@@ -1,0 +1,127 @@
+# AgriFlow Oracle Network - Stellar Ecosystem Information (SEP-0001)
+# Specification: https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0001.md
+
+VERSION = "2.0.0"
+NETWORK_PASSPHRASE = "Test SDF Network ; September 2015"
+
+[DOCUMENTATION]
+ORG_NAME = "AgriFlow Decentralized Oracle Network"
+ORG_DBA = "AgriFlow Oracles"
+ORG_URL = "https://github.com/Stellar-AgriFlow/agriflow-oracle-network"
+ORG_LOGO = "https://raw.githubusercontent.com/Stellar-AgriFlow/StellarAgriFlow/main/apps/web/public/logo.png"
+ORG_DESCRIPTION = "Institutional-grade agricultural commodity benchmarks, parametric weather telemetry, and decentralized staking on Soroban"
+ORG_OFFICIAL_EMAIL = "oracles@stellar-agriflow.org"
+ORG_GITHUB = "Stellar-AgriFlow"
+
+[PRINCIPALS]
+NAME = "LaPoshBaby"
+EMAIL = "LaPoshBaby@users.noreply.github.com"
+GITHUB = "LaPoshBaby"
+
+[[ACCOUNTS]]
+PUBLIC_KEY = "GCL7UUKY7EE3OL5ROR3V3PFPRONI7RBCJ5S5BRFF4SO5LBDUH3QEXBTY"
+DESC = "AgriFlow Primary Relayer and Hardware Enclave Reporter Node"
+
+# ==========================================
+# SOROBAN SMART CONTRACTS
+# ==========================================
+
+[[CONTRACTS]]
+CONTRACT_ID = "CDE2KRZ2ZYZ2B7RT4BA4IPMTHBMUROWSSBCG2RGXM6MDS5GGAKR3GEI7"
+NAME = "AgriPriceFeedContract"
+DESC = "Decentralized agricultural commodity benchmark price oracle for Maize, Wheat, Cocoa, Coffee, Soybeans, and Fertilizer on Soroban"
+
+[[CONTRACTS]]
+CONTRACT_ID = "CCC6PHP7LADEVOW4AOLSRXHC6WOK2LW3ZJQX4EEYKR42GR3HXNSFIPHN"
+NAME = "WeatherRiskOracleContract"
+DESC = "Parametric weather and drought risk index oracle with automatic programmatic insurance payout triggers on Soroban"
+
+[[CONTRACTS]]
+CONTRACT_ID = "CA7X2E2V5D6E7YBNZMRJ5E8WKQP4K5M4X6N3R8B2C9L1A4G5H7J3K"
+NAME = "OracleStakingContract"
+DESC = "Decentralized economic security contract with validator collateral staking (5,000 XLM), unbonding delay, and deviance slashing on Soroban"
+
+# ==========================================
+# SUPPORTED DATA FEEDS
+# ==========================================
+
+[[FEEDS]]
+NAME = "Maize (Corn)"
+TICKER = "MAIZE"
+BASE_CURRENCY = "USD"
+UNIT = "per bushel"
+STALENESS_SLA_SECONDS = 3600
+
+[[FEEDS]]
+NAME = "Wheat (Soft Red)"
+TICKER = "WHEAT"
+BASE_CURRENCY = "USD"
+UNIT = "per bushel"
+STALENESS_SLA_SECONDS = 3600
+
+[[FEEDS]]
+NAME = "Cocoa (Grade 1)"
+TICKER = "COCOA"
+BASE_CURRENCY = "USD"
+UNIT = "per metric ton"
+STALENESS_SLA_SECONDS = 3600
+
+[[FEEDS]]
+NAME = "Coffee (Arabica)"
+TICKER = "COFFEE"
+BASE_CURRENCY = "USD"
+UNIT = "per lb"
+STALENESS_SLA_SECONDS = 3600
+
+[[FEEDS]]
+NAME = "Soybeans (Yellow #2)"
+TICKER = "SOYBEANS"
+BASE_CURRENCY = "USD"
+UNIT = "per bushel"
+STALENESS_SLA_SECONDS = 3600
+
+[[FEEDS]]
+NAME = "Fertilizer (DAP)"
+TICKER = "FERTILIZER"
+BASE_CURRENCY = "USD"
+UNIT = "per metric ton"
+STALENESS_SLA_SECONDS = 7200
+
+# ==========================================
+# PARAMETRIC WEATHER BASINS
+# ==========================================
+
+[[REGIONS]]
+CODE = "NG_KANO"
+NAME = "Northern Nigeria (Kano / Kaduna Cereal Belt)"
+LAT = 12.0022
+LON = 8.5920
+DEFAULT_DROUGHT_THRESHOLD = 75
+
+[[REGIONS]]
+CODE = "KE_RIFT"
+NAME = "Kenya (Rift Valley Maize and Tea Zone)"
+LAT = 0.5143
+LON = 35.2698
+DEFAULT_DROUGHT_THRESHOLD = 70
+
+[[REGIONS]]
+CODE = "GH_ASHANTI"
+NAME = "Ghana (Ashanti Cocoa Cooperative Basin)"
+LAT = 6.6885
+LON = -1.6244
+DEFAULT_DROUGHT_THRESHOLD = 70
+
+[[REGIONS]]
+CODE = "CI_SASSANDRA"
+NAME = "Côte d’Ivoire (Bas-Sassandra Cocoa Belt)"
+LAT = 4.9538
+LON = -6.0853
+DEFAULT_DROUGHT_THRESHOLD = 70
+
+[[REGIONS]]
+CODE = "BR_MATO_GROSSO"
+NAME = "Brazil (Mato Grosso Soybean Savannah)"
+LAT = -12.6819
+LON = -56.9211
+DEFAULT_DROUGHT_THRESHOLD = 80
