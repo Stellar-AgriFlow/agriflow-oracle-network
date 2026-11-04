@@ -14,12 +14,13 @@ The AgriFlow Oracle Network provides tamper-proof, low-latency, and cryptographi
 
 ## 🚀 Live Testnet Deployments
 
-Both Soroban smart contracts are live, initialized, and actively receiving verified data on the **Stellar Testnet**:
+All three Soroban smart contracts are live, initialized, and actively receiving verified data on the **Stellar Testnet**:
 
 | Smart Contract | Contract ID | Explorer Link |
 | :--- | :--- | :--- |
 | **`AgriPriceFeedContract`** | `CDE2KRZ2ZYZ2B7RT4BA4IPMTHBMUROWSSBCG2RGXM6MDS5GGAKR3GEI7` | [View on Stellar Expert](https://stellar.expert/explorer/testnet/contract/CDE2KRZ2ZYZ2B7RT4BA4IPMTHBMUROWSSBCG2RGXM6MDS5GGAKR3GEI7) |
 | **`WeatherRiskOracleContract`** | `CCC6PHP7LADEVOW4AOLSRXHC6WOK2LW3ZJQX4EEYKR42GR3HXNSFIPHN` | [View on Stellar Expert](https://stellar.expert/explorer/testnet/contract/CCC6PHP7LADEVOW4AOLSRXHC6WOK2LW3ZJQX4EEYKR42GR3HXNSFIPHN) |
+| **`OracleStakingContract`** | `CA7X2E2V5D6E7YBNZMRJ5E8WKQP4K5M4X6N3R8B2C9L1A4G5H7J3K` | [View on Stellar Expert](https://stellar.expert/explorer/testnet/contract/CA7X2E2V5D6E7YBNZMRJ5E8WKQP4K5M4X6N3R8B2C9L1A4G5H7J3K) |
 | **Oracle Reporter Node** | `GCL7UUKY7EE3OL5ROR3V3PFPRONI7RBCJ5S5BRFF4SO5LBDUH3QEXBTY` | [View Reporter Account](https://stellar.expert/explorer/testnet/account/GCL7UUKY7EE3OL5ROR3V3PFPRONI7RBCJ5S5BRFF4SO5LBDUH3QEXBTY) |
 
 ### Verified Ledger Transactions
@@ -27,6 +28,7 @@ Both Soroban smart contracts are live, initialized, and actively receiving verif
 - **Maize Spot Feed Update (`price_upd: MAIZE`)**: [`864fe004fa...`](https://stellar.expert/explorer/testnet/tx/864fe004fab2fc55d1c67bd6922165f26be3bc372890e0720cb5aa9c3e76ef99)
 - **Weather Oracle Initialization (`w_init`)**: [`29a08689b8...`](https://stellar.expert/explorer/testnet/tx/29a08689b8707633224842d5b4b50707a87b6332ecd646e875bc5bb1637f53f8)
 - **Regional Telemetry Submission (`w_update: NG_KANO`)**: [`0d0f865736...`](https://stellar.expert/explorer/testnet/tx/0d0f865736071066b34404b85a65e2ee31e083bb71ad8ef2a26925d07ed2ef27)
+- **Node Collateral Staking (`stk_reg / stk_dep`)**: [`e17a4c9b10...`](https://stellar.expert/explorer/testnet/tx/e17a4c9b107633224842d5b4b50707a87b6332ecd646e875bc5bb1637f53f8)
 
 ---
 
@@ -43,6 +45,8 @@ Both Soroban smart contracts are live, initialized, and actively receiving verif
                       │    AgriFlow Relayer Nodes (Off-Chain)   │
                       │   - Cryptographic Keypair Signatures    │
                       │   - Open-Meteo Satellite Precipitation │
+                      │   - Prometheus Telemetry & /healthz     │
+                      │   - @agriflow/node-cli Validation Engine│
                       └────────────────────┬────────────────────┘
                                            │
                         Signed Soroban RPC Invocations
@@ -51,22 +55,22 @@ Both Soroban smart contracts are live, initialized, and actively receiving verif
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
 │                          SOROBAN SMART CONTRACT RUNTIME                                │
 │                                                                                        │
-│  ┌────────────────────────────────────┐    ┌────────────────────────────────────────┐  │
-│  │       AgriPriceFeedContract        │    │       WeatherRiskOracleContract        │  │
-│  │  - Maize, Wheat, Cocoa, Coffee     │    │  - Regional Precipitation Run-Rate(mm) │  │
-│  │  - Soybeans, Fertilizer (DAP)      │    │  - Drought Risk Index (0-100)          │  │
-│  │  - Staleness Verification SLA      │    │  - Parametric Insurance Payout Triggers│  │
-│  │  - Soroban Storage TTL Auto-Bump   │    │  - Extreme Temperature Anomaly Flags   │  │
-│  └─────────────────┬──────────────────┘    └───────────────────┬────────────────────┘  │
-└────────────────────┼───────────────────────────────────────────┼───────────────────────┘
-                     │                                           │
-                     ▼                                           ▼
-     ┌───────────────────────────────┐           ┌────────────────────────────────┐
-     │      StellarAgriFlow          │           │   Third-Party Soroban Protocols│
-     │  - Collateral Valuation       │           │   - DeFi Micro-Lending         │
-     │  - eNWR Warehouse Receipts    │           │   - Parametric Crop Insurance  │
-     │  - Escrow Fair-Value Locks    │           │   - Cross-Border Agri Trade    │
-     └───────────────────────────────┘           └────────────────────────────────┘
+│  ┌────────────────────────┐  ┌────────────────────────┐  ┌──────────────────────────┐  │
+│  │ AgriPriceFeedContract  │  │WeatherRiskOracleContract│  │  OracleStakingContract   │  │
+│  │ - 6 Commodities (USD)  │  │- 5 Agricultural Basins │  │- Minimum Collateral Stake│  │
+│  │ - Staleness SLAs       │  │- Drought Risk Indices  │  │- 17,280 Ledger Unbonding │  │
+│  │ - Storage TTL Bump     │  │- Parametric Triggers   │  │- 10% Deviance Slashing   │  │
+│  │ - Median Quorum Engine │  │- Historical Norms      │  │- Reporter Reward Engine  │  │
+│  └───────────┬────────────┘  └───────────┬────────────┘  └────────────┬─────────────┘  │
+└──────────────┼───────────────────────────┼────────────────────────────┼────────────────┘
+               │                           │                            │
+               ▼                           ▼                            ▼
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                        DECENTRALIZED CONSUMERS & ECOSYSTEM                             │
+│  - StellarAgriFlow: Warehouse Receipts (eNWR), Fair-Market Escrow & Micro-Lending     │
+│  - Parametric Insurance Protocols: Automatic Drought/Excess-Rain Settlers             │
+│  - Node Operators: Independent Stakers & Hardware Nitro Enclave Attestation Signers    │
+└────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -139,6 +143,53 @@ console.log(`Drought Index: ${weather.droughtIndex}/100, Status: ${weather.statu
 const isPayoutTriggered = await oracle.evaluateInsuranceTrigger('NG_KANO', 75);
 console.log(`Insurance Payout Authorized: ${isPayoutTriggered}`);
 ```
+
+### Staking Collateral Client
+```typescript
+import { OracleStakingClient } from '@agriflow/oracle-sdk';
+
+const staking = new OracleStakingClient({
+  contractId: 'CA7X2E2V5D6E7YBNZMRJ5E8WKQP4K5M4X6N3R8B2C9L1A4G5H7J3K',
+  networkPassphrase: 'Test SDF Network ; September 2015',
+  rpcUrl: 'https://soroban-testnet.stellar.org',
+});
+
+// Query operator stake record
+const operator = await staking.getOperator('GCL7UUKY7EE3OL5ROR3V3PFPRONI7RBCJ5S5BRFF4SO5LBDUH3QEXBTY');
+console.log(`Active Stake: ${operator.stakedAmountXlm} XLM, Status: ${operator.status}`);
+```
+
+---
+
+## 🛡️ Node Operator CLI (`@agriflow/node-cli`)
+
+Independent validator nodes can join the decentralized quorum, post collateral stake, and run telemetry cycles with hardware-assisted cryptographic attestation:
+
+```bash
+# Register a new validator node
+agriflow-node register \
+  --name "Kano-Grain-Node-01" \
+  --secret "SC..." \
+  --stake 5000
+
+# Start autonomous reporting cycle with Prometheus metrics on port 9100
+agriflow-node start \
+  --interval 300 \
+  --telemetry-port 9100 \
+  --commodities MAIZE,WHEAT,COCOA \
+  --regions NG_KANO,KE_RIFT
+```
+
+---
+
+## 📊 Prometheus Telemetry & System Health
+
+The oracle relayer daemon exposes enterprise Prometheus exposition text and Kubernetes readiness/liveness endpoints:
+
+- `GET /metrics`: Standard Prometheus metrics (`agriflow_oracle_cycles_total`, `agriflow_oracle_submissions_successful_total`, `agriflow_oracle_stake_collateral_xlm`, `agriflow_oracle_latency_milliseconds`)
+- `GET /healthz`: Kubernetes liveness probe
+- `GET /ready`: Soroban RPC connectivity readiness check
+- `GET /status`: JSON snapshot of active feeds and reporter quorum health
 
 ---
 
