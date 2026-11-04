@@ -54,4 +54,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated `docker/Dockerfile.relayer` and `docker/Dockerfile.dashboard` to copy all package manifests avoiding missing workspace package errors during container builds.
 - Aligned root `package.json` test script to execute Vitest across the entire monorepo.
 - Tracked `contracts/Cargo.lock` in repository to ensure reproducible Soroban Rust contract builds and prevent incompatible transitive crate resolution on CI runners.
+- Upgraded Rust toolchain in `.github/workflows/ci.yml` from legacy 1.79.0 to `@stable` with wasm32 compilation, eliminating `edition2024` build failures.
+- Streamlined pnpm action setup (`v9.15.9`) and caching in `.github/workflows/ci.yml` for deterministic, zero-fail monorepo typecheck and build validation.
+- Overhauled `README.md` with comprehensive architecture flowcharts, visual showcase, live Testnet contract addresses, and frontend deployment guide.
 
