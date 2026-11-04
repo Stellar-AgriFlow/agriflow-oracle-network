@@ -198,4 +198,46 @@ export class HistoricalPriceAggregator {
 
     return prices.filter((p) => Math.abs(p - median) <= maxAllowedDeviation);
   }
+
+  /**
+   * Computes RiskMetrics Exponentially Weighted Moving Average (EWMA) volatility
+   * Models time-varying conditional variance for crop price risk assessment
+   */
+  static computeEwmaVolatility(prices: number[], lambda: number = 0.94): {
+    variance: number;
+    annualizedVolatilityPercent: number;
+  } {
+    if (prices.length < 2) {
+      return { variance: 0, annualizedVolatilityPercent: 0 };
+    }
+
+    // Compute log returns
+    const returns: number[] = [];
+    for (let i = 1; i < prices.length; i++) {
+      const prev = prices[i - 1];
+      const curr = prices[i];
+      if (prev > 0 && curr > 0) {
+        returns.push(Math.log(curr / prev));
+      }
+    }
+
+    if (returns.length === 0) {
+      return { variance: 0, annualizedVolatilityPercent: 0 };
+    }
+
+    // Initial variance is squared return of first observation
+    let variance = Math.pow(returns[0], 2);
+
+    for (let i = 1; i < returns.length; i++) {
+      variance = lambda * variance + (1 - lambda) * Math.pow(returns[i], 2);
+    }
+
+    const dailyVol = Math.sqrt(variance);
+    const annualizedVol = dailyVol * Math.sqrt(365) * 100;
+
+    return {
+      variance: Number(variance.toFixed(8)),
+      annualizedVolatilityPercent: Number(annualizedVol.toFixed(2)),
+    };
+  }
 }
