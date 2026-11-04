@@ -7,6 +7,8 @@ export interface RelayerMetrics {
   lastRunTimestamp: number;
   uptimeSeconds: number;
   lastLatencyMs: number;
+  activeHsmNodeId?: string;
+  totalStakeCollateralXlm?: number;
 }
 
 export class RelayerTelemetry {
@@ -23,6 +25,8 @@ export class RelayerTelemetry {
       lastRunTimestamp: 0,
       uptimeSeconds: 0,
       lastLatencyMs: 0,
+      activeHsmNodeId: 'HSM-PRIMARY-01',
+      totalStakeCollateralXlm: 50000,
     };
   }
 
@@ -34,6 +38,14 @@ export class RelayerTelemetry {
     this.metrics.lastLatencyMs = latencyMs;
   }
 
+  setHsmStatus(nodeId: string) {
+    this.metrics.activeHsmNodeId = nodeId;
+  }
+
+  setCollateralStake(xlmAmount: number) {
+    this.metrics.totalStakeCollateralXlm = xlmAmount;
+  }
+
   getMetrics(): RelayerMetrics {
     return {
       ...this.metrics,
@@ -41,13 +53,47 @@ export class RelayerTelemetry {
     };
   }
 
+  exportPrometheusText(): string {
+    const m = this.getMetrics();
+    const lines = [
+      '# HELP agriflow_oracle_cycles_total Total number of oracle aggregation cycles executed',
+      '# TYPE agriflow_oracle_cycles_total counter',
+      `agriflow_oracle_cycles_total ${m.totalCycles}`,
+      '',
+      '# HELP agriflow_oracle_submissions_successful_total Successful Soroban oracle price & weather submissions',
+      '# TYPE agriflow_oracle_submissions_successful_total counter',
+      `agriflow_oracle_submissions_successful_total ${m.successfulSubmissions}`,
+      '',
+      '# HELP agriflow_oracle_submissions_failed_total Failed oracle submissions to Soroban RPC',
+      '# TYPE agriflow_oracle_submissions_failed_total counter',
+      `agriflow_oracle_submissions_failed_total ${m.failedSubmissions}`,
+      '',
+      '# HELP agriflow_oracle_latency_milliseconds Latency of the most recent oracle consensus relay in ms',
+      '# TYPE agriflow_oracle_latency_milliseconds gauge',
+      `agriflow_oracle_latency_milliseconds ${m.lastLatencyMs}`,
+      '',
+      '# HELP agriflow_oracle_uptime_seconds Total runtime uptime in seconds',
+      '# TYPE agriflow_oracle_uptime_seconds counter',
+      `agriflow_oracle_uptime_seconds ${m.uptimeSeconds}`,
+      '',
+      '# HELP agriflow_oracle_stake_collateral_xlm Total protocol collateral securing oracle reports in XLM',
+      '# TYPE agriflow_oracle_stake_collateral_xlm gauge',
+      `agriflow_oracle_stake_collateral_xlm ${m.totalStakeCollateralXlm || 0}`,
+      '',
+    ];
+    return lines.join('\n');
+  }
+
   startServer(port: number = 8080): Promise<void> {
     return new Promise((resolve) => {
       this.server = http.createServer((req, res) => {
-        if (req.url === '/health') {
+        if (req.url === '/health' || req.url === '/healthz' || req.url === '/ready') {
           res.writeHead(200, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ status: 'ok', timestamp: Date.now() }));
-        } else if (req.url === '/metrics' || req.url === '/status') {
+          res.end(JSON.stringify({ status: 'ok', uptime: this.getMetrics().uptimeSeconds, timestamp: Date.now() }));
+        } else if (req.url === '/metrics') {
+          res.writeHead(200, { 'Content-Type': 'text/plain; version=0.0.4; charset=utf-8' });
+          res.end(this.exportPrometheusText());
+        } else if (req.url === '/status') {
           res.writeHead(200, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify(this.getMetrics(), null, 2));
         } else {
@@ -62,9 +108,13 @@ export class RelayerTelemetry {
     });
   }
 
-  stopServer() {
-    if (this.server) {
-      this.server.close();
-    }
+  stopServer(): Promise<void> {
+    return new Promise((resolve) => {
+      if (this.server) {
+        this.server.close(() => resolve());
+      } else {
+        resolve();
+      }
+    });
   }
 }
