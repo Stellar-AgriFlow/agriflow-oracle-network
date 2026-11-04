@@ -16,7 +16,6 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: 1.79.0
           targets: wasm32-unknown-unknown
 
       - name: Rust Cache
@@ -25,7 +24,7 @@ jobs:
           workspaces: contracts
 
       - name: Run Contract Tests
-        run: cargo test --manifest-path contracts/Cargo.toml --verbose
+        run: cargo test --manifest-path contracts/Cargo.toml --workspace --verbose
 
       - name: Build WASM Contracts
         run: cargo build --manifest-path contracts/Cargo.toml --target wasm32-unknown-unknown --release
@@ -36,15 +35,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9.15.9
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 9
+          cache: 'pnpm'
 
       - name: Install Dependencies
         run: pnpm install --no-frozen-lockfile
