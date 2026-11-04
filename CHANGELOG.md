@@ -53,3 +53,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed TypeScript type imports in `services/oracle-relayer/src/twapWorker.ts` ensuring clean Turborepo monorepo builds.
 - Updated `docker/Dockerfile.relayer` and `docker/Dockerfile.dashboard` to copy all package manifests avoiding missing workspace package errors during container builds.
 - Aligned root `package.json` test script to execute Vitest across the entire monorepo.
+- Tracked `contracts/Cargo.lock` in repository to ensure reproducible Soroban Rust contract builds and prevent incompatible transitive crate resolution on CI runners.
+

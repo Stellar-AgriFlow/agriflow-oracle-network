@@ -8,7 +8,6 @@ out/
 
 # Rust & Cargo
 target/
-Cargo.lock
 **/*.rs.bk
 
 # Env & Secrets

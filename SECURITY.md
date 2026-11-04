@@ -43,3 +43,4 @@ If you believe you have discovered a security vulnerability in:
 ## Bug Bounty Program
 
 High-severity vulnerabilities that identify novel economic exploits, Soroban state corruption, or cryptographic attestation bypasses are eligible for discretionary rewards sponsored through our ecosystem security fund.
+
