@@ -240,4 +240,72 @@ export class HistoricalPriceAggregator {
       annualizedVolatilityPercent: Number(annualizedVol.toFixed(2)),
     };
   }
+
+  /**
+   * Computes Seasonal Price Index for agricultural commodity cycles (monthly or quarterly)
+   * Base index = 100.0. Values > 100 indicate lean-season premiums, < 100 indicate harvest gluts.
+   */
+  static computeSeasonalIndex(observations: { period: number; price: number }[]): {
+    periodIndices: Record<number, number>;
+    peakPeriod: number;
+    troughPeriod: number;
+    seasonalityAmplitudePercent: number;
+  } {
+    if (observations.length === 0) {
+      return {
+        periodIndices: {},
+        peakPeriod: 0,
+        troughPeriod: 0,
+        seasonalityAmplitudePercent: 0,
+      };
+    }
+
+    const grandMean = observations.reduce((acc, curr) => acc + curr.price, 0) / observations.length;
+    if (grandMean === 0) {
+      return {
+        periodIndices: {},
+        peakPeriod: 0,
+        troughPeriod: 0,
+        seasonalityAmplitudePercent: 0,
+      };
+    }
+
+    // Group by period
+    const periodMap = new Map<number, number[]>();
+    for (const obs of observations) {
+      const list = periodMap.get(obs.period) || [];
+      list.push(obs.price);
+      periodMap.set(obs.period, list);
+    }
+
+    const periodIndices: Record<number, number> = {};
+    let peakPeriod = 0;
+    let troughPeriod = 0;
+    let maxIndex = -Infinity;
+    let minIndex = Infinity;
+
+    for (const [period, prices] of periodMap.entries()) {
+      const avg = prices.reduce((acc, p) => acc + p, 0) / prices.length;
+      const index = Number(((avg / grandMean) * 100).toFixed(2));
+      periodIndices[period] = index;
+
+      if (index > maxIndex) {
+        maxIndex = index;
+        peakPeriod = period;
+      }
+      if (index < minIndex) {
+        minIndex = index;
+        troughPeriod = period;
+      }
+    }
+
+    const seasonalityAmplitudePercent = Number((maxIndex - minIndex).toFixed(2));
+
+    return {
+      periodIndices,
+      peakPeriod,
+      troughPeriod,
+      seasonalityAmplitudePercent: isFinite(seasonalityAmplitudePercent) ? seasonalityAmplitudePercent : 0,
+    };
+  }
 }
