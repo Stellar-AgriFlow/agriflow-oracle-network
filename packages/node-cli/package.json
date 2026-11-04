@@ -1,0 +1,22 @@
+{
+  "name": "@agriflow/node-cli",
+  "version": "0.1.0",
+  "description": "CLI tool for decentralized AgriFlow Oracle node operators",
+  "main": "dist/index.js",
+  "bin": {
+    "agriflow-node": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc -w"
+  },
+  "dependencies": {
+    "@stellar/stellar-sdk": "^11.3.0",
+    "@agriflow/types": "workspace:*",
+    "@agriflow/oracle-sdk": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5",
+    "vitest": "^1.6.0"
+  }
+}
