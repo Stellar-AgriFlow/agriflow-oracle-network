@@ -17,16 +17,21 @@ import {
   ArrowRight,
   Copy,
   Check,
+  Coins,
 } from 'lucide-react';
+import { BollingerBandsChart } from '../components/BollingerBandsChart';
+import { SeasonalHarvestChart } from '../components/SeasonalHarvestChart';
+import { OracleStakingSection } from '../components/OracleStakingSection';
 
 const CONTRACTS = {
   priceFeed: 'CDE2KRZ2ZYZ2B7RT4BA4IPMTHBMUROWSSBCG2RGXM6MDS5GGAKR3GEI7',
   weatherOracle: 'CCC6PHP7LADEVOW4AOLSRXHC6WOK2LW3ZJQX4EEYKR42GR3HXNSFIPHN',
+  staking: 'CA7X2E2V5D6E7YBNZMRJ5E8WKQP4K5M4X6N3R8B2C9L1A4G5H7J3K',
   admin: 'GCL7UUKY7EE3OL5ROR3V3PFPRONI7RBCJ5S5BRFF4SO5LBDUH3QEXBTY',
 };
 
 export default function OracleDashboard() {
-  const [activeTab, setActiveTab] = useState<'rust' | 'ts'>('rust');
+  const [activeTab, setActiveTab] = useState<'rust' | 'ts' | 'cli'>('rust');
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   // Simulator state
@@ -77,7 +82,7 @@ export default function OracleDashboard() {
                 </span>
               </h1>
               <p className="text-sm text-slate-400">
-                Institutional-grade commodity benchmarks & parametric weather risk indices on Soroban
+                Institutional-grade commodity benchmarks, parametric weather risk indices, and decentralized staking on Soroban
               </p>
             </div>
           </div>
@@ -107,7 +112,7 @@ export default function OracleDashboard() {
       </header>
 
       {/* Live Deployed Contract Banners */}
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="p-4 rounded-xl bg-slate-900/90 border border-emerald-500/30 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between text-xs text-slate-400">
@@ -135,7 +140,7 @@ export default function OracleDashboard() {
           </div>
           <div className="mt-3 flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-slate-800">
             <span>Base Currency: <strong>USD</strong></span>
-            <span>Storage: <strong>Persistent + TTL Bump</strong></span>
+            <span>Storage: <strong>Persistent + TTL</strong></span>
             <span className="text-emerald-400">● Deployed & Active</span>
           </div>
         </div>
@@ -171,6 +176,38 @@ export default function OracleDashboard() {
             <span className="text-blue-400">● Deployed & Active</span>
           </div>
         </div>
+
+        <div className="p-4 rounded-xl bg-slate-900/90 border border-purple-500/30 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between text-xs text-slate-400">
+              <span className="font-semibold text-purple-400 flex items-center gap-1.5">
+                <Coins className="h-4 w-4" /> OracleStakingContract
+              </span>
+              <a
+                href={`https://stellar.expert/explorer/testnet/contract/${CONTRACTS.staking}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-purple-400 flex items-center gap-1 text-slate-400 transition"
+              >
+                Explorer <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
+            <div className="mt-2 text-xs font-mono text-slate-200 break-all bg-slate-950 p-2.5 rounded-lg border border-slate-800 flex items-center justify-between">
+              <span>{CONTRACTS.staking}</span>
+              <button
+                onClick={() => copyToClipboard(CONTRACTS.staking, 'staking')}
+                className="ml-2 text-slate-400 hover:text-white"
+              >
+                {copiedKey === 'staking' ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+              </button>
+            </div>
+          </div>
+          <div className="mt-3 flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-slate-800">
+            <span>Min Stake: <strong>5,000 XLM</strong></span>
+            <span>Slashing: <strong>10% Deviance</strong></span>
+            <span className="text-purple-400">● Deployed & Active</span>
+          </div>
+        </div>
       </section>
 
       {/* Network Stats */}
@@ -190,17 +227,17 @@ export default function OracleDashboard() {
           </div>
         </div>
         <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800">
-          <div className="text-xs font-medium text-slate-400 uppercase tracking-wider">Telemetry Engine</div>
-          <div className="mt-2 text-2xl font-bold text-white">Open-Meteo API</div>
-          <div className="mt-1 text-xs text-slate-400 flex items-center gap-1">
-            <Cpu className="h-3.5 w-3.5" /> Real Satellite Telemetry
+          <div className="text-xs font-medium text-slate-400 uppercase tracking-wider">Total Staked Collateral</div>
+          <div className="mt-2 text-2xl font-bold text-white">110,000 XLM</div>
+          <div className="mt-1 text-xs text-purple-400 flex items-center gap-1">
+            <Coins className="h-3.5 w-3.5" /> 4 Active Validator Nodes
           </div>
         </div>
         <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800">
           <div className="text-xs font-medium text-slate-400 uppercase tracking-wider">Rent Archival TTL</div>
           <div className="mt-2 text-2xl font-bold text-white">300,000 Ledgers</div>
           <div className="mt-1 text-xs text-emerald-400 flex items-center gap-1">
-            <ShieldCheck className="h-3.5 w-3.5" /> Storage Extended
+            <ShieldCheck className="h-3.5 w-3.5" /> Auto-Bump Safeguard
           </div>
         </div>
       </section>
@@ -260,6 +297,9 @@ export default function OracleDashboard() {
           ))}
         </div>
       </section>
+
+      {/* Bollinger Bands Volatility Envelope */}
+      <BollingerBandsChart />
 
       {/* Parametric Weather Risk Oracle */}
       <section className="space-y-4">
@@ -327,6 +367,9 @@ export default function OracleDashboard() {
           </table>
         </div>
       </section>
+
+      {/* Seasonality Harvest Cycle Curve */}
+      <SeasonalHarvestChart />
 
       {/* Interactive Parametric Insurance Simulator */}
       <section className="p-6 rounded-xl bg-slate-900/90 border border-slate-800 space-y-6">
@@ -432,16 +475,19 @@ export default function OracleDashboard() {
         </div>
       </section>
 
+      {/* Decentralized Economic Security & Oracle Staking */}
+      <OracleStakingSection />
+
       {/* Developer Integration Code */}
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-lg font-semibold text-white flex items-center gap-2">
               <Terminal className="h-5 w-5 text-emerald-400" />
-              Developer Quickstart
+              Developer Quickstart & Node CLI
             </h2>
             <p className="text-xs text-slate-400">
-              How any Soroban smart contract or TypeScript application interacts with AgriFlow Oracles.
+              How Soroban smart contracts, TypeScript applications, and decentralized nodes interact with AgriFlow.
             </p>
           </div>
           <div className="flex bg-slate-900 border border-slate-800 rounded-lg p-0.5">
@@ -461,11 +507,19 @@ export default function OracleDashboard() {
             >
               TypeScript SDK
             </button>
+            <button
+              onClick={() => setActiveTab('cli')}
+              className={`px-3 py-1 text-xs font-medium rounded-md transition ${
+                activeTab === 'cli' ? 'bg-emerald-500 text-slate-950 font-semibold' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              Node Operator CLI
+            </button>
           </div>
         </div>
 
         <div className="rounded-xl border border-slate-800 bg-slate-950 p-4 font-mono text-xs text-slate-300 overflow-x-auto">
-          {activeTab === 'rust' ? (
+          {activeTab === 'rust' && (
             <pre>
 {`// Query AgriPriceFeedContract on Stellar Testnet
 use soroban_sdk::{symbol_short, Address, Env};
@@ -481,9 +535,10 @@ pub fn evaluate_loan_collateral(env: &Env, oracle_address: &Address, bushels: i1
     (bushels * feed.price) / 100
 }`}
             </pre>
-          ) : (
+          )}
+          {activeTab === 'ts' && (
             <pre>
-{`import { AgriOracleClient } from '@agriflow/oracle-sdk';
+{`import { AgriOracleClient, OracleStakingClient } from '@agriflow/oracle-sdk';
 
 const oracle = new AgriOracleClient({
   priceFeedContractId: 'CDE2KRZ2ZYZ2B7RT4BA4IPMTHBMUROWSSBCG2RGXM6MDS5GGAKR3GEI7',
@@ -494,9 +549,33 @@ const oracle = new AgriOracleClient({
 const maize = await oracle.getCommodityPrice('MAIZE');
 console.log(maize.formattedPrice); // "$4.42"
 
-// Check drought insurance conditions for Northern Nigeria
-const weather = await oracle.getWeatherMetrics('NG_KANO');
-console.log(weather.droughtIndex); // 78/100 -> Payout Trigger Met!`}
+// Inspect staking & slashing collateral
+const staking = new OracleStakingClient({
+  contractId: 'CA7X2E2V5D6E7YBNZMRJ5E8WKQP4K5M4X6N3R8B2C9L1A4G5H7J3K',
+  networkPassphrase: 'Test SDF Network ; September 2015',
+  rpcUrl: 'https://soroban-testnet.stellar.org',
+});
+const operator = await staking.getOperator('GCL7UUKY7EE3OL5ROR3V3PFPRONI7RBCJ5S5BRFF4SO5LBDUH3QEXBTY');
+console.log(operator.stakedAmountXlm); // 45,000 XLM`}
+            </pre>
+          )}
+          {activeTab === 'cli' && (
+            <pre>
+{`# Install and launch AgriFlow decentralized validator node
+npm install -g @agriflow/node-cli
+
+# Register node operator and stake 5,000 XLM collateral
+agriflow-node register \\
+  --name "Nairobi-Validator-01" \\
+  --secret "SCXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" \\
+  --stake 5000
+
+# Start autonomous reporting engine with hardware attestation signing
+agriflow-node start \\
+  --interval 300 \\
+  --telemetry-port 9100 \\
+  --commodities MAIZE,WHEAT,COCOA \\
+  --regions NG_KANO,KE_RIFT,GH_ASHANTI`}
             </pre>
           )}
         </div>
