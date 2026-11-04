@@ -2,6 +2,18 @@
   "name": "oracle-dashboard",
   "version": "0.1.0",
   "private": true,
+  "description": "Real-time institutional monitoring dashboard for agricultural commodity spot benchmarks, parametric climate risk, and validator node staking on Stellar",
+  "keywords": [
+    "stellar",
+    "soroban",
+    "oracle",
+    "dashboard",
+    "nextjs",
+    "tailwind",
+    "bollinger-bands",
+    "agriculture",
+    "rwa"
+  ],
   "scripts": {
     "dev": "next dev",
     "build": "next build",
