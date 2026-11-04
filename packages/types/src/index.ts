@@ -35,3 +35,30 @@ export interface OracleNodeStatus {
   uptimePercentage: number;
 }
 
+export interface OracleOperatorStakeRecord {
+  operatorAddress: string;
+  stakedAmount: number;
+  unbondingAmount: number;
+  unbondReleaseLedger: number;
+  totalReports: number;
+  totalSlashed: number;
+  totalRewards: number;
+  isActive: boolean;
+  registeredAtLedger: number;
+}
+
+export interface OracleSlashEvent {
+  operatorAddress: string;
+  slashedAmount: number;
+  reason: string;
+  ledger: number;
+  timestamp: number;
+}
+
+export interface NodeRegistrationParams {
+  operatorPublicKey: string;
+  initialStakeXlm: number;
+  supportedFeeds: CommoditySymbol[];
+  regionCodes: RegionCode[];
+  hsmEndpoint?: string;
+}
