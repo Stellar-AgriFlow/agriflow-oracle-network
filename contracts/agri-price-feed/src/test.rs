@@ -1,6 +1,10 @@
 #![cfg(test)]
 use super::*;
-use soroban_sdk::{testutils::{Address as _, Ledger}, symbol_short, Address, Env};
+use soroban_sdk::{
+    symbol_short,
+    testutils::{Address as _, Ledger},
+    Address, Env,
+};
 
 #[test]
 fn test_price_feed_lifecycle() {
@@ -193,4 +197,3 @@ fn test_multi_reporter_median_consensus() {
     let p2 = client.get_reporter_price(&maize, &r2);
     assert_eq!(p2.price, 480);
 }
-

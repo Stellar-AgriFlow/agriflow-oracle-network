@@ -54,16 +54,20 @@ impl AgriPriceFeedContract {
         admin.require_auth();
 
         env.storage().instance().set(&DataKey::Admin, &admin);
-        env.storage().instance().set(&DataKey::BaseCurrency, &base_currency);
+        env.storage()
+            .instance()
+            .set(&DataKey::BaseCurrency, &base_currency);
         let empty_reporters: Vec<Address> = Vec::new(&env);
-        env.storage().instance().set(&DataKey::Reporters, &empty_reporters);
+        env.storage()
+            .instance()
+            .set(&DataKey::Reporters, &empty_reporters);
 
-        env.storage().instance().extend_ttl(INSTANCE_LIFETIME_THRESHOLD, INSTANCE_BUMP_AMOUNT);
+        env.storage()
+            .instance()
+            .extend_ttl(INSTANCE_LIFETIME_THRESHOLD, INSTANCE_BUMP_AMOUNT);
 
-        env.events().publish(
-            (symbol_short!("init"), base_currency),
-            admin,
-        );
+        env.events()
+            .publish((symbol_short!("init"), base_currency), admin);
 
         Ok(())
     }
@@ -91,8 +95,12 @@ impl AgriPriceFeedContract {
         }
 
         reporters.push_back(reporter.clone());
-        env.storage().instance().set(&DataKey::Reporters, &reporters);
-        env.storage().instance().extend_ttl(INSTANCE_LIFETIME_THRESHOLD, INSTANCE_BUMP_AMOUNT);
+        env.storage()
+            .instance()
+            .set(&DataKey::Reporters, &reporters);
+        env.storage()
+            .instance()
+            .extend_ttl(INSTANCE_LIFETIME_THRESHOLD, INSTANCE_BUMP_AMOUNT);
 
         env.events().publish((symbol_short!("rep_add"),), reporter);
 
@@ -131,7 +139,9 @@ impl AgriPriceFeedContract {
         }
 
         env.storage().instance().set(&DataKey::Reporters, &updated);
-        env.storage().instance().extend_ttl(INSTANCE_LIFETIME_THRESHOLD, INSTANCE_BUMP_AMOUNT);
+        env.storage()
+            .instance()
+            .extend_ttl(INSTANCE_LIFETIME_THRESHOLD, INSTANCE_BUMP_AMOUNT);
 
         env.events().publish((symbol_short!("rep_rm"),), reporter);
 
@@ -146,10 +156,8 @@ impl AgriPriceFeedContract {
     ) -> Result<(), OracleError> {
         Self::remove_reporter(env.clone(), reporter.clone())?;
 
-        env.events().publish(
-            (symbol_short!("slash"), reporter),
-            penalty_amount,
-        );
+        env.events()
+            .publish((symbol_short!("slash"), reporter), penalty_amount);
 
         Ok(())
     }
@@ -197,8 +205,13 @@ impl AgriPriceFeedContract {
             reporter: reporter.clone(),
         };
 
-        env.storage().persistent().set(&DataKey::Price(commodity.clone()), &data);
-        env.storage().persistent().set(&DataKey::ReporterPrice(commodity.clone(), reporter.clone()), &data);
+        env.storage()
+            .persistent()
+            .set(&DataKey::Price(commodity.clone()), &data);
+        env.storage().persistent().set(
+            &DataKey::ReporterPrice(commodity.clone(), reporter.clone()),
+            &data,
+        );
 
         // Maintain historical price buffer for TWAP calculation
         let mut history: Vec<i128> = env
@@ -214,10 +227,24 @@ impl AgriPriceFeedContract {
             .persistent()
             .set(&DataKey::PriceHistory(commodity.clone()), &history);
 
-        env.storage().instance().extend_ttl(INSTANCE_LIFETIME_THRESHOLD, INSTANCE_BUMP_AMOUNT);
-        env.storage().persistent().extend_ttl(&DataKey::Price(commodity.clone()), INSTANCE_LIFETIME_THRESHOLD, INSTANCE_BUMP_AMOUNT);
-        env.storage().persistent().extend_ttl(&DataKey::ReporterPrice(commodity.clone(), reporter.clone()), INSTANCE_LIFETIME_THRESHOLD, INSTANCE_BUMP_AMOUNT);
-        env.storage().persistent().extend_ttl(&DataKey::PriceHistory(commodity.clone()), INSTANCE_LIFETIME_THRESHOLD, INSTANCE_BUMP_AMOUNT);
+        env.storage()
+            .instance()
+            .extend_ttl(INSTANCE_LIFETIME_THRESHOLD, INSTANCE_BUMP_AMOUNT);
+        env.storage().persistent().extend_ttl(
+            &DataKey::Price(commodity.clone()),
+            INSTANCE_LIFETIME_THRESHOLD,
+            INSTANCE_BUMP_AMOUNT,
+        );
+        env.storage().persistent().extend_ttl(
+            &DataKey::ReporterPrice(commodity.clone(), reporter.clone()),
+            INSTANCE_LIFETIME_THRESHOLD,
+            INSTANCE_BUMP_AMOUNT,
+        );
+        env.storage().persistent().extend_ttl(
+            &DataKey::PriceHistory(commodity.clone()),
+            INSTANCE_LIFETIME_THRESHOLD,
+            INSTANCE_BUMP_AMOUNT,
+        );
 
         env.events().publish(
             (symbol_short!("price_upd"), commodity),
@@ -374,4 +401,3 @@ impl AgriPriceFeedContract {
 
 #[cfg(test)]
 mod test;
-

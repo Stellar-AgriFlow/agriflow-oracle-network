@@ -53,9 +53,13 @@ impl WeatherRiskOracleContract {
 
         env.storage().instance().set(&DataKey::Admin, &admin);
         let empty_reporters: Vec<Address> = Vec::new(&env);
-        env.storage().instance().set(&DataKey::Reporters, &empty_reporters);
+        env.storage()
+            .instance()
+            .set(&DataKey::Reporters, &empty_reporters);
 
-        env.storage().instance().extend_ttl(INSTANCE_LIFETIME_THRESHOLD, INSTANCE_BUMP_AMOUNT);
+        env.storage()
+            .instance()
+            .extend_ttl(INSTANCE_LIFETIME_THRESHOLD, INSTANCE_BUMP_AMOUNT);
 
         env.events().publish((symbol_short!("w_init"),), admin);
 
@@ -85,10 +89,15 @@ impl WeatherRiskOracleContract {
         }
 
         reporters.push_back(reporter.clone());
-        env.storage().instance().set(&DataKey::Reporters, &reporters);
-        env.storage().instance().extend_ttl(INSTANCE_LIFETIME_THRESHOLD, INSTANCE_BUMP_AMOUNT);
+        env.storage()
+            .instance()
+            .set(&DataKey::Reporters, &reporters);
+        env.storage()
+            .instance()
+            .extend_ttl(INSTANCE_LIFETIME_THRESHOLD, INSTANCE_BUMP_AMOUNT);
 
-        env.events().publish((symbol_short!("w_rep_add"),), reporter);
+        env.events()
+            .publish((symbol_short!("w_rep_add"),), reporter);
 
         Ok(())
     }
@@ -125,7 +134,9 @@ impl WeatherRiskOracleContract {
         }
 
         env.storage().instance().set(&DataKey::Reporters, &updated);
-        env.storage().instance().extend_ttl(INSTANCE_LIFETIME_THRESHOLD, INSTANCE_BUMP_AMOUNT);
+        env.storage()
+            .instance()
+            .extend_ttl(INSTANCE_LIFETIME_THRESHOLD, INSTANCE_BUMP_AMOUNT);
 
         env.events().publish((symbol_short!("w_rep_rm"),), reporter);
 
@@ -157,10 +168,8 @@ impl WeatherRiskOracleContract {
                 .set(&DataKey::Metrics(region.clone()), &metrics);
         }
 
-        env.events().publish(
-            (symbol_short!("w_base"), region),
-            new_baseline_mm,
-        );
+        env.events()
+            .publish((symbol_short!("w_base"), region), new_baseline_mm);
 
         Ok(())
     }
@@ -210,8 +219,12 @@ impl WeatherRiskOracleContract {
             reporter: reporter.clone(),
         };
 
-        env.storage().persistent().set(&DataKey::Metrics(region.clone()), &metrics);
-        env.storage().instance().extend_ttl(INSTANCE_LIFETIME_THRESHOLD, INSTANCE_BUMP_AMOUNT);
+        env.storage()
+            .persistent()
+            .set(&DataKey::Metrics(region.clone()), &metrics);
+        env.storage()
+            .instance()
+            .extend_ttl(INSTANCE_LIFETIME_THRESHOLD, INSTANCE_BUMP_AMOUNT);
 
         env.events().publish(
             (symbol_short!("w_update"), region),
@@ -302,4 +315,3 @@ impl WeatherRiskOracleContract {
 
 #[cfg(test)]
 mod test;
-

@@ -76,26 +76,38 @@ impl OracleStakingContract {
         env.storage().instance().set(&DataKey::Admin, &admin);
         env.storage().instance().set(&DataKey::Paused, &false);
         env.storage().instance().set(&DataKey::MinStake, &min_stake);
-        env.storage().instance().set(&DataKey::UnbondingDelayLedgers, &unbonding_delay_ledgers);
+        env.storage()
+            .instance()
+            .set(&DataKey::UnbondingDelayLedgers, &unbonding_delay_ledgers);
         env.storage().instance().set(&DataKey::TotalStaked, &0i128);
 
         let empty_list: Vec<Address> = Vec::new(&env);
-        env.storage().instance().set(&DataKey::OperatorsList, &empty_list);
+        env.storage()
+            .instance()
+            .set(&DataKey::OperatorsList, &empty_list);
 
-        env.storage().instance().extend_ttl(INSTANCE_LIFETIME_THRESHOLD, INSTANCE_BUMP_AMOUNT);
+        env.storage()
+            .instance()
+            .extend_ttl(INSTANCE_LIFETIME_THRESHOLD, INSTANCE_BUMP_AMOUNT);
 
         Ok(())
     }
 
     /// Configure optional Stellar Asset Contract (SAC) or token address for real collateral transfers
     pub fn set_stake_token(env: Env, admin: Address, token: Address) -> Result<(), StakingError> {
-        let stored_admin: Address = env.storage().instance().get(&DataKey::Admin).ok_or(StakingError::NotInitialized)?;
+        let stored_admin: Address = env
+            .storage()
+            .instance()
+            .get(&DataKey::Admin)
+            .ok_or(StakingError::NotInitialized)?;
         stored_admin.require_auth();
         if admin != stored_admin {
             return Err(StakingError::Unauthorized);
         }
         env.storage().instance().set(&DataKey::StakeToken, &token);
-        env.storage().instance().extend_ttl(INSTANCE_LIFETIME_THRESHOLD, INSTANCE_BUMP_AMOUNT);
+        env.storage()
+            .instance()
+            .extend_ttl(INSTANCE_LIFETIME_THRESHOLD, INSTANCE_BUMP_AMOUNT);
         Ok(())
     }
 
@@ -112,7 +124,11 @@ impl OracleStakingContract {
         Self::ensure_not_paused(&env)?;
         operator.require_auth();
 
-        let min_stake: i128 = env.storage().instance().get(&DataKey::MinStake).ok_or(StakingError::NotInitialized)?;
+        let min_stake: i128 = env
+            .storage()
+            .instance()
+            .get(&DataKey::MinStake)
+            .ok_or(StakingError::NotInitialized)?;
         if initial_stake < min_stake {
             return Err(StakingError::InsufficientStake);
         }
@@ -144,17 +160,33 @@ impl OracleStakingContract {
         };
 
         env.storage().persistent().set(&op_key, &info);
-        env.storage().persistent().extend_ttl(&op_key, PERSISTENT_LIFETIME_THRESHOLD, PERSISTENT_BUMP_AMOUNT);
+        env.storage().persistent().extend_ttl(
+            &op_key,
+            PERSISTENT_LIFETIME_THRESHOLD,
+            PERSISTENT_BUMP_AMOUNT,
+        );
 
-        let mut list: Vec<Address> = env.storage().instance().get(&DataKey::OperatorsList).unwrap_or(Vec::new(&env));
+        let mut list: Vec<Address> = env
+            .storage()
+            .instance()
+            .get(&DataKey::OperatorsList)
+            .unwrap_or(Vec::new(&env));
         list.push_back(operator.clone());
         env.storage().instance().set(&DataKey::OperatorsList, &list);
 
-        let mut total_staked: i128 = env.storage().instance().get(&DataKey::TotalStaked).unwrap_or(0);
+        let mut total_staked: i128 = env
+            .storage()
+            .instance()
+            .get(&DataKey::TotalStaked)
+            .unwrap_or(0);
         total_staked += initial_stake;
-        env.storage().instance().set(&DataKey::TotalStaked, &total_staked);
+        env.storage()
+            .instance()
+            .set(&DataKey::TotalStaked, &total_staked);
 
-        env.storage().instance().extend_ttl(INSTANCE_LIFETIME_THRESHOLD, INSTANCE_BUMP_AMOUNT);
+        env.storage()
+            .instance()
+            .extend_ttl(INSTANCE_LIFETIME_THRESHOLD, INSTANCE_BUMP_AMOUNT);
 
         env.events().publish(
             (symbol_short!("stk_reg"), operator),
@@ -165,11 +197,7 @@ impl OracleStakingContract {
     }
 
     /// Deposit additional stake into operator position
-    pub fn deposit_stake(
-        env: Env,
-        operator: Address,
-        amount: i128,
-    ) -> Result<(), StakingError> {
+    pub fn deposit_stake(env: Env, operator: Address, amount: i128) -> Result<(), StakingError> {
         Self::ensure_not_paused(&env)?;
         operator.require_auth();
 
@@ -196,13 +224,25 @@ impl OracleStakingContract {
         info.is_active = true;
 
         env.storage().persistent().set(&op_key, &info);
-        env.storage().persistent().extend_ttl(&op_key, PERSISTENT_LIFETIME_THRESHOLD, PERSISTENT_BUMP_AMOUNT);
+        env.storage().persistent().extend_ttl(
+            &op_key,
+            PERSISTENT_LIFETIME_THRESHOLD,
+            PERSISTENT_BUMP_AMOUNT,
+        );
 
-        let mut total_staked: i128 = env.storage().instance().get(&DataKey::TotalStaked).unwrap_or(0);
+        let mut total_staked: i128 = env
+            .storage()
+            .instance()
+            .get(&DataKey::TotalStaked)
+            .unwrap_or(0);
         total_staked += amount;
-        env.storage().instance().set(&DataKey::TotalStaked, &total_staked);
+        env.storage()
+            .instance()
+            .set(&DataKey::TotalStaked, &total_staked);
 
-        env.storage().instance().extend_ttl(INSTANCE_LIFETIME_THRESHOLD, INSTANCE_BUMP_AMOUNT);
+        env.storage()
+            .instance()
+            .extend_ttl(INSTANCE_LIFETIME_THRESHOLD, INSTANCE_BUMP_AMOUNT);
 
         env.events().publish(
             (symbol_short!("stk_dep"), operator),
@@ -213,11 +253,7 @@ impl OracleStakingContract {
     }
 
     /// Request to unbond a portion of staked capital
-    pub fn request_unbond(
-        env: Env,
-        operator: Address,
-        amount: i128,
-    ) -> Result<(), StakingError> {
+    pub fn request_unbond(env: Env, operator: Address, amount: i128) -> Result<(), StakingError> {
         Self::ensure_not_paused(&env)?;
         operator.require_auth();
 
@@ -236,7 +272,11 @@ impl OracleStakingContract {
             return Err(StakingError::InsufficientStake);
         }
 
-        let delay: u32 = env.storage().instance().get(&DataKey::UnbondingDelayLedgers).unwrap_or(17280);
+        let delay: u32 = env
+            .storage()
+            .instance()
+            .get(&DataKey::UnbondingDelayLedgers)
+            .unwrap_or(17280);
         let current_ledger = env.ledger().sequence();
         let release_ledger = current_ledger + delay;
 
@@ -244,19 +284,35 @@ impl OracleStakingContract {
         info.unbonding_amount += amount;
         info.unbond_release_ledger = release_ledger;
 
-        let min_stake: i128 = env.storage().instance().get(&DataKey::MinStake).unwrap_or(0);
+        let min_stake: i128 = env
+            .storage()
+            .instance()
+            .get(&DataKey::MinStake)
+            .unwrap_or(0);
         if info.staked_amount < min_stake {
             info.is_active = false;
         }
 
         env.storage().persistent().set(&op_key, &info);
-        env.storage().persistent().extend_ttl(&op_key, PERSISTENT_LIFETIME_THRESHOLD, PERSISTENT_BUMP_AMOUNT);
+        env.storage().persistent().extend_ttl(
+            &op_key,
+            PERSISTENT_LIFETIME_THRESHOLD,
+            PERSISTENT_BUMP_AMOUNT,
+        );
 
-        let mut total_staked: i128 = env.storage().instance().get(&DataKey::TotalStaked).unwrap_or(0);
+        let mut total_staked: i128 = env
+            .storage()
+            .instance()
+            .get(&DataKey::TotalStaked)
+            .unwrap_or(0);
         total_staked -= amount;
-        env.storage().instance().set(&DataKey::TotalStaked, &total_staked);
+        env.storage()
+            .instance()
+            .set(&DataKey::TotalStaked, &total_staked);
 
-        env.storage().instance().extend_ttl(INSTANCE_LIFETIME_THRESHOLD, INSTANCE_BUMP_AMOUNT);
+        env.storage()
+            .instance()
+            .extend_ttl(INSTANCE_LIFETIME_THRESHOLD, INSTANCE_BUMP_AMOUNT);
 
         env.events().publish(
             (symbol_short!("unb_req"), operator),
@@ -300,9 +356,15 @@ impl OracleStakingContract {
         }
 
         env.storage().persistent().set(&op_key, &info);
-        env.storage().persistent().extend_ttl(&op_key, PERSISTENT_LIFETIME_THRESHOLD, PERSISTENT_BUMP_AMOUNT);
+        env.storage().persistent().extend_ttl(
+            &op_key,
+            PERSISTENT_LIFETIME_THRESHOLD,
+            PERSISTENT_BUMP_AMOUNT,
+        );
 
-        env.storage().instance().extend_ttl(INSTANCE_LIFETIME_THRESHOLD, INSTANCE_BUMP_AMOUNT);
+        env.storage()
+            .instance()
+            .extend_ttl(INSTANCE_LIFETIME_THRESHOLD, INSTANCE_BUMP_AMOUNT);
 
         env.events().publish(
             (symbol_short!("unb_wdr"), operator),
@@ -319,7 +381,11 @@ impl OracleStakingContract {
         slash_amount: i128,
         reason: Symbol,
     ) -> Result<i128, StakingError> {
-        let admin: Address = env.storage().instance().get(&DataKey::Admin).ok_or(StakingError::NotInitialized)?;
+        let admin: Address = env
+            .storage()
+            .instance()
+            .get(&DataKey::Admin)
+            .ok_or(StakingError::NotInitialized)?;
         admin.require_auth();
 
         if slash_amount <= 0 {
@@ -342,19 +408,35 @@ impl OracleStakingContract {
         info.staked_amount -= actual_slash;
         info.total_slashed += actual_slash;
 
-        let min_stake: i128 = env.storage().instance().get(&DataKey::MinStake).unwrap_or(0);
+        let min_stake: i128 = env
+            .storage()
+            .instance()
+            .get(&DataKey::MinStake)
+            .unwrap_or(0);
         if info.staked_amount < min_stake {
             info.is_active = false;
         }
 
         env.storage().persistent().set(&op_key, &info);
-        env.storage().persistent().extend_ttl(&op_key, PERSISTENT_LIFETIME_THRESHOLD, PERSISTENT_BUMP_AMOUNT);
+        env.storage().persistent().extend_ttl(
+            &op_key,
+            PERSISTENT_LIFETIME_THRESHOLD,
+            PERSISTENT_BUMP_AMOUNT,
+        );
 
-        let mut total_staked: i128 = env.storage().instance().get(&DataKey::TotalStaked).unwrap_or(0);
+        let mut total_staked: i128 = env
+            .storage()
+            .instance()
+            .get(&DataKey::TotalStaked)
+            .unwrap_or(0);
         total_staked -= actual_slash;
-        env.storage().instance().set(&DataKey::TotalStaked, &total_staked);
+        env.storage()
+            .instance()
+            .set(&DataKey::TotalStaked, &total_staked);
 
-        env.storage().instance().extend_ttl(INSTANCE_LIFETIME_THRESHOLD, INSTANCE_BUMP_AMOUNT);
+        env.storage()
+            .instance()
+            .extend_ttl(INSTANCE_LIFETIME_THRESHOLD, INSTANCE_BUMP_AMOUNT);
 
         if let Some(token) = Self::get_stake_token(env.clone()) {
             soroban_sdk::token::Client::new(&env, &token).transfer(
@@ -364,10 +446,8 @@ impl OracleStakingContract {
             );
         }
 
-        env.events().publish(
-            (symbol_short!("stk_slh"), operator),
-            (actual_slash, reason),
-        );
+        env.events()
+            .publish((symbol_short!("stk_slh"), operator), (actual_slash, reason));
 
         Ok(actual_slash)
     }
@@ -378,7 +458,11 @@ impl OracleStakingContract {
         operator: Address,
         reward_amount: i128,
     ) -> Result<(), StakingError> {
-        let admin: Address = env.storage().instance().get(&DataKey::Admin).ok_or(StakingError::NotInitialized)?;
+        let admin: Address = env
+            .storage()
+            .instance()
+            .get(&DataKey::Admin)
+            .ok_or(StakingError::NotInitialized)?;
         admin.require_auth();
 
         if reward_amount <= 0 {
@@ -397,13 +481,25 @@ impl OracleStakingContract {
         info.total_reports += 1;
 
         env.storage().persistent().set(&op_key, &info);
-        env.storage().persistent().extend_ttl(&op_key, PERSISTENT_LIFETIME_THRESHOLD, PERSISTENT_BUMP_AMOUNT);
+        env.storage().persistent().extend_ttl(
+            &op_key,
+            PERSISTENT_LIFETIME_THRESHOLD,
+            PERSISTENT_BUMP_AMOUNT,
+        );
 
-        let mut total_staked: i128 = env.storage().instance().get(&DataKey::TotalStaked).unwrap_or(0);
+        let mut total_staked: i128 = env
+            .storage()
+            .instance()
+            .get(&DataKey::TotalStaked)
+            .unwrap_or(0);
         total_staked += reward_amount;
-        env.storage().instance().set(&DataKey::TotalStaked, &total_staked);
+        env.storage()
+            .instance()
+            .set(&DataKey::TotalStaked, &total_staked);
 
-        env.storage().instance().extend_ttl(INSTANCE_LIFETIME_THRESHOLD, INSTANCE_BUMP_AMOUNT);
+        env.storage()
+            .instance()
+            .extend_ttl(INSTANCE_LIFETIME_THRESHOLD, INSTANCE_BUMP_AMOUNT);
 
         env.events().publish(
             (symbol_short!("stk_rwd"), operator),
@@ -415,7 +511,11 @@ impl OracleStakingContract {
 
     /// Record a verified report to operator statistics
     pub fn record_report(env: Env, operator: Address) -> Result<(), StakingError> {
-        let admin: Address = env.storage().instance().get(&DataKey::Admin).ok_or(StakingError::NotInitialized)?;
+        let admin: Address = env
+            .storage()
+            .instance()
+            .get(&DataKey::Admin)
+            .ok_or(StakingError::NotInitialized)?;
         admin.require_auth();
 
         let op_key = DataKey::Operator(operator);
@@ -437,18 +537,28 @@ impl OracleStakingContract {
 
     /// Get list of all registered operator addresses
     pub fn get_operators(env: Env) -> Vec<Address> {
-        env.storage().instance().get(&DataKey::OperatorsList).unwrap_or(Vec::new(&env))
+        env.storage()
+            .instance()
+            .get(&DataKey::OperatorsList)
+            .unwrap_or(Vec::new(&env))
     }
 
     /// Get total staked protocol collateral
     pub fn get_total_staked(env: Env) -> i128 {
-        env.storage().instance().get(&DataKey::TotalStaked).unwrap_or(0)
+        env.storage()
+            .instance()
+            .get(&DataKey::TotalStaked)
+            .unwrap_or(0)
     }
 
     /// Check if operator has active status and meets minimum stake
     pub fn is_operator_eligible(env: Env, operator: Address) -> bool {
         if let Some(info) = Self::get_operator(env.clone(), operator) {
-            let min_stake: i128 = env.storage().instance().get(&DataKey::MinStake).unwrap_or(0);
+            let min_stake: i128 = env
+                .storage()
+                .instance()
+                .get(&DataKey::MinStake)
+                .unwrap_or(0);
             info.is_active && info.staked_amount >= min_stake
         } else {
             false
@@ -457,7 +567,11 @@ impl OracleStakingContract {
 
     /// Pause contract
     pub fn pause(env: Env) -> Result<(), StakingError> {
-        let admin: Address = env.storage().instance().get(&DataKey::Admin).ok_or(StakingError::NotInitialized)?;
+        let admin: Address = env
+            .storage()
+            .instance()
+            .get(&DataKey::Admin)
+            .ok_or(StakingError::NotInitialized)?;
         admin.require_auth();
         env.storage().instance().set(&DataKey::Paused, &true);
         Ok(())
@@ -465,14 +579,22 @@ impl OracleStakingContract {
 
     /// Unpause contract
     pub fn unpause(env: Env) -> Result<(), StakingError> {
-        let admin: Address = env.storage().instance().get(&DataKey::Admin).ok_or(StakingError::NotInitialized)?;
+        let admin: Address = env
+            .storage()
+            .instance()
+            .get(&DataKey::Admin)
+            .ok_or(StakingError::NotInitialized)?;
         admin.require_auth();
         env.storage().instance().set(&DataKey::Paused, &false);
         Ok(())
     }
 
     fn ensure_not_paused(env: &Env) -> Result<(), StakingError> {
-        let paused: bool = env.storage().instance().get(&DataKey::Paused).unwrap_or(false);
+        let paused: bool = env
+            .storage()
+            .instance()
+            .get(&DataKey::Paused)
+            .unwrap_or(false);
         if paused {
             return Err(StakingError::ContractPaused);
         }

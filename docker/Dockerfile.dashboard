@@ -15,7 +15,7 @@ RUN pnpm install --frozen-lockfile
 COPY packages/ ./packages/
 COPY apps/oracle-dashboard/ ./apps/oracle-dashboard/
 
-RUN pnpm --filter oracle-dashboard build
+RUN pnpm --filter @agriflow/types build && pnpm --filter oracle-dashboard build
 
 FROM node:20-alpine AS runner
 

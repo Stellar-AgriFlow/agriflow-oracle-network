@@ -1,6 +1,10 @@
 #![cfg(test)]
 use super::*;
-use soroban_sdk::{testutils::{Address as _, Ledger}, symbol_short, Address, Env};
+use soroban_sdk::{
+    symbol_short,
+    testutils::{Address as _, Ledger},
+    Address, Env,
+};
 
 #[test]
 fn test_weather_oracle_lifecycle() {
@@ -57,7 +61,14 @@ fn test_invalid_drought_index_rejected() {
     client.add_reporter(&reporter);
 
     // Drought index > 100 is invalid
-    let res = client.try_report_weather(&reporter, &symbol_short!("KE_RIFT"), &50, &100, &105, &false);
+    let res = client.try_report_weather(
+        &reporter,
+        &symbol_short!("KE_RIFT"),
+        &50,
+        &100,
+        &105,
+        &false,
+    );
     assert_eq!(res.err(), Some(Ok(WeatherOracleError::InvalidMetrics)));
 }
 
@@ -155,4 +166,3 @@ fn test_update_baseline_rainfall() {
     client.update_baseline_rainfall(&region, &120);
     assert_eq!(client.get_deviation_from_baseline(&region), -80);
 }
-
