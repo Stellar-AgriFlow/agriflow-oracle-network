@@ -34,6 +34,7 @@ pub enum DataKey {
     Reporters,
     Price(Symbol),
     PriceHistory(Symbol),
+    ReporterPrice(Symbol, Address),
 }
 
 const INSTANCE_BUMP_AMOUNT: u32 = 300_000;
@@ -197,6 +198,7 @@ impl AgriPriceFeedContract {
         };
 
         env.storage().persistent().set(&DataKey::Price(commodity.clone()), &data);
+        env.storage().persistent().set(&DataKey::ReporterPrice(commodity.clone(), reporter.clone()), &data);
 
         // Maintain historical price buffer for TWAP calculation
         let mut history: Vec<i128> = env
@@ -213,6 +215,9 @@ impl AgriPriceFeedContract {
             .set(&DataKey::PriceHistory(commodity.clone()), &history);
 
         env.storage().instance().extend_ttl(INSTANCE_LIFETIME_THRESHOLD, INSTANCE_BUMP_AMOUNT);
+        env.storage().persistent().extend_ttl(&DataKey::Price(commodity.clone()), INSTANCE_LIFETIME_THRESHOLD, INSTANCE_BUMP_AMOUNT);
+        env.storage().persistent().extend_ttl(&DataKey::ReporterPrice(commodity.clone(), reporter.clone()), INSTANCE_LIFETIME_THRESHOLD, INSTANCE_BUMP_AMOUNT);
+        env.storage().persistent().extend_ttl(&DataKey::PriceHistory(commodity.clone()), INSTANCE_LIFETIME_THRESHOLD, INSTANCE_BUMP_AMOUNT);
 
         env.events().publish(
             (symbol_short!("price_upd"), commodity),
@@ -220,6 +225,64 @@ impl AgriPriceFeedContract {
         );
 
         Ok(())
+    }
+
+    /// Retrieve the price submitted by a specific authorized reporter
+    pub fn get_reporter_price(
+        env: Env,
+        commodity: Symbol,
+        reporter: Address,
+    ) -> Result<PriceData, OracleError> {
+        env.storage()
+            .persistent()
+            .get(&DataKey::ReporterPrice(commodity, reporter))
+            .ok_or(OracleError::FeedNotFound)
+    }
+
+    /// Calculate multi-reporter consensus median price across fresh reporting nodes
+    pub fn get_median_price(
+        env: Env,
+        commodity: Symbol,
+        max_staleness_seconds: u64,
+    ) -> Result<i128, OracleError> {
+        let reporters = Self::get_reporters(env.clone())?;
+        let current_time = env.ledger().timestamp();
+        let mut prices: Vec<i128> = Vec::new(&env);
+
+        for r in reporters.iter() {
+            if let Ok(data) = Self::get_reporter_price(env.clone(), commodity.clone(), r) {
+                if current_time <= data.timestamp + max_staleness_seconds && data.price > 0 {
+                    prices.push_back(data.price);
+                }
+            }
+        }
+
+        if prices.is_empty() {
+            let global = Self::get_price_safe(env, commodity, max_staleness_seconds)?;
+            return Ok(global.price);
+        }
+
+        let n = prices.len();
+        let mut sorted = prices.clone();
+        for i in 1..n {
+            let mut j = i;
+            while j > 0 && sorted.get(j).unwrap() < sorted.get(j - 1).unwrap() {
+                let a = sorted.get(j).unwrap();
+                let b = sorted.get(j - 1).unwrap();
+                sorted.set(j, b);
+                sorted.set(j - 1, a);
+                j -= 1;
+            }
+        }
+
+        let mid = n / 2;
+        if n % 2 == 0 {
+            let p1 = sorted.get(mid - 1).unwrap();
+            let p2 = sorted.get(mid).unwrap();
+            Ok((p1 + p2) / 2)
+        } else {
+            Ok(sorted.get(mid).unwrap())
+        }
     }
 
     /// Retrieve the latest recorded price data for an agricultural commodity

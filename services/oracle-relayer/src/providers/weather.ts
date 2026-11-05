@@ -74,9 +74,9 @@ export class WeatherDataProvider {
   private getFallbackSample(r: RegionCoordinates): WeatherSample {
     return {
       region: r.code,
-      rainfallMm: Math.round(r.historicalAvgMm * 0.4),
+      rainfallMm: r.historicalAvgMm,
       historicalAvgRainfallMm: r.historicalAvgMm,
-      droughtIndex: 60,
+      droughtIndex: 0,
       extremeTempFlag: false,
     };
   }

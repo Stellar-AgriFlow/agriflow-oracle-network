@@ -157,3 +157,40 @@ fn test_reporter_slashing() {
     assert!(!client.is_reporter(&reporter));
 }
 
+#[test]
+fn test_multi_reporter_median_consensus() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let contract_id = env.register(AgriPriceFeedContract, ());
+    let client = AgriPriceFeedContractClient::new(&env, &contract_id);
+
+    let admin = Address::generate(&env);
+    let r1 = Address::generate(&env);
+    let r2 = Address::generate(&env);
+    let r3 = Address::generate(&env);
+
+    client.initialize(&admin, &symbol_short!("USD"));
+    client.add_reporter(&r1);
+    client.add_reporter(&r2);
+    client.add_reporter(&r3);
+
+    let maize = symbol_short!("MAIZE");
+    env.ledger().set_timestamp(1_000);
+
+    // Three reporters submit prices: 440, 480, 450
+    client.set_price(&r1, &maize, &440, &2, &95);
+    client.set_price(&r2, &maize, &480, &2, &95);
+    client.set_price(&r3, &maize, &450, &2, &95);
+
+    // Median of [440, 450, 480] is 450
+    let median = client.get_median_price(&maize, &300);
+    assert_eq!(median, 450);
+
+    // Verify per-reporter storage
+    let p1 = client.get_reporter_price(&maize, &r1);
+    assert_eq!(p1.price, 440);
+    let p2 = client.get_reporter_price(&maize, &r2);
+    assert_eq!(p2.price, 480);
+}
+

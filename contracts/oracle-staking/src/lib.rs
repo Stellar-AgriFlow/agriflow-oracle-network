@@ -43,6 +43,7 @@ pub enum DataKey {
     TotalStaked,
     OperatorsList,
     Operator(Address),
+    StakeToken,
 }
 
 const INSTANCE_BUMP_AMOUNT: u32 = 300_000;
@@ -86,6 +87,22 @@ impl OracleStakingContract {
         Ok(())
     }
 
+    /// Configure optional Stellar Asset Contract (SAC) or token address for real collateral transfers
+    pub fn set_stake_token(env: Env, admin: Address, token: Address) -> Result<(), StakingError> {
+        let stored_admin: Address = env.storage().instance().get(&DataKey::Admin).ok_or(StakingError::NotInitialized)?;
+        stored_admin.require_auth();
+        if admin != stored_admin {
+            return Err(StakingError::Unauthorized);
+        }
+        env.storage().instance().set(&DataKey::StakeToken, &token);
+        env.storage().instance().extend_ttl(INSTANCE_LIFETIME_THRESHOLD, INSTANCE_BUMP_AMOUNT);
+        Ok(())
+    }
+
+    pub fn get_stake_token(env: Env) -> Option<Address> {
+        env.storage().instance().get(&DataKey::StakeToken)
+    }
+
     /// Register a new oracle operator with initial staked collateral
     pub fn register_operator(
         env: Env,
@@ -103,6 +120,14 @@ impl OracleStakingContract {
         let op_key = DataKey::Operator(operator.clone());
         if env.storage().persistent().has(&op_key) {
             return Err(StakingError::OperatorAlreadyRegistered);
+        }
+
+        if let Some(token) = Self::get_stake_token(env.clone()) {
+            soroban_sdk::token::Client::new(&env, &token).transfer(
+                &operator,
+                &env.current_contract_address(),
+                &initial_stake,
+            );
         }
 
         let current_ledger = env.ledger().sequence();
@@ -150,6 +175,14 @@ impl OracleStakingContract {
 
         if amount <= 0 {
             return Err(StakingError::InvalidAmount);
+        }
+
+        if let Some(token) = Self::get_stake_token(env.clone()) {
+            soroban_sdk::token::Client::new(&env, &token).transfer(
+                &operator,
+                &env.current_contract_address(),
+                &amount,
+            );
         }
 
         let op_key = DataKey::Operator(operator.clone());
@@ -258,6 +291,14 @@ impl OracleStakingContract {
         info.unbonding_amount = 0;
         info.unbond_release_ledger = 0;
 
+        if let Some(token) = Self::get_stake_token(env.clone()) {
+            soroban_sdk::token::Client::new(&env, &token).transfer(
+                &env.current_contract_address(),
+                &operator,
+                &withdrawn,
+            );
+        }
+
         env.storage().persistent().set(&op_key, &info);
         env.storage().persistent().extend_ttl(&op_key, PERSISTENT_LIFETIME_THRESHOLD, PERSISTENT_BUMP_AMOUNT);
 
@@ -314,6 +355,14 @@ impl OracleStakingContract {
         env.storage().instance().set(&DataKey::TotalStaked, &total_staked);
 
         env.storage().instance().extend_ttl(INSTANCE_LIFETIME_THRESHOLD, INSTANCE_BUMP_AMOUNT);
+
+        if let Some(token) = Self::get_stake_token(env.clone()) {
+            soroban_sdk::token::Client::new(&env, &token).transfer(
+                &env.current_contract_address(),
+                &admin,
+                &actual_slash,
+            );
+        }
 
         env.events().publish(
             (symbol_short!("stk_slh"), operator),
