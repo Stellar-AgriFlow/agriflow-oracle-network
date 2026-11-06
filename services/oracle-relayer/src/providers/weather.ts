@@ -42,14 +42,16 @@ export class WeatherDataProvider {
           const precipitationSums: number[] = data.daily?.precipitation_sum || [];
           const maxTemps: number[] = data.daily?.temperature_2m_max || [];
 
-          // 7-day cumulative rainfall scaled to monthly run-rate
-          const weekRainfall = precipitationSums.reduce((acc, val) => acc + (val || 0), 0);
-          const monthlyEst = Math.round(weekRainfall * 4);
-          const maxTemp = Math.max(...maxTemps, 25);
+          // Multi-day cumulative rainfall scaled accurately to 30-day monthly run-rate
+          const days = Math.max(precipitationSums.length, 1);
+          const observedRainfall = precipitationSums.reduce((acc, val) => acc + (val || 0), 0);
+          const monthlyEst = Math.round((observedRainfall / days) * 30);
+          const maxTemp = maxTemps.length > 0 ? Math.max(...maxTemps) : 25;
 
           // Drought index: deficit against expected historical average
-          const deficit = Math.max(0, r.historicalAvgMm - monthlyEst);
-          const droughtIndex = Math.min(100, Math.round((deficit / r.historicalAvgMm) * 100));
+          const baselineMm = Math.max(r.historicalAvgMm, 1);
+          const deficit = Math.max(0, baselineMm - monthlyEst);
+          const droughtIndex = Math.min(100, Math.round((deficit / baselineMm) * 100));
           const extremeTemp = maxTemp > 38;
 
           results.push({

@@ -148,6 +148,14 @@
                     },
                     {
                       "key": {
+                        "symbol": "is_token_staked"
+                      },
+                      "val": {
+                        "bool": false
+                      }
+                    },
+                    {
+                      "key": {
                         "symbol": "operator"
                       },
                       "val": {

@@ -23,6 +23,9 @@ jobs:
         with:
           workspaces: contracts
 
+      - name: Format Check
+        run: cargo fmt --manifest-path contracts/Cargo.toml --all -- --check
+
       - name: Run Contract Tests
         run: cargo test --manifest-path contracts/Cargo.toml --workspace --verbose
 
@@ -48,6 +51,9 @@ jobs:
 
       - name: Install Dependencies
         run: pnpm install --no-frozen-lockfile
+
+      - name: Run Tests
+        run: pnpm test
 
       - name: Build Packages & Apps
         run: pnpm run build

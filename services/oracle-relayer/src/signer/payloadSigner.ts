@@ -19,11 +19,27 @@ export class ReporterPayloadSigner {
     return this.keypair.publicKey();
   }
 
+  static canonicalize(obj: any): any {
+    if (obj === null || typeof obj !== 'object') {
+      return obj;
+    }
+    if (Array.isArray(obj)) {
+      return obj.map(ReporterPayloadSigner.canonicalize);
+    }
+    const sortedKeys = Object.keys(obj).sort();
+    const result: Record<string, any> = {};
+    for (const key of sortedKeys) {
+      result[key] = ReporterPayloadSigner.canonicalize(obj[key]);
+    }
+    return result;
+  }
+
   /**
    * Generates SHA-256 hash of any arbitrary JSON-serializable payload
    */
   static hashPayload(data: any): Buffer {
-    const serialized = JSON.stringify(data, Object.keys(data).sort());
+    const canonical = ReporterPayloadSigner.canonicalize(data);
+    const serialized = JSON.stringify(canonical);
     return crypto.createHash('sha256').update(serialized).digest();
   }
 

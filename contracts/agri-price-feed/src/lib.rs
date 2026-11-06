@@ -32,6 +32,7 @@ pub enum DataKey {
     Admin,
     BaseCurrency,
     Reporters,
+    IsReporter(Address),
     Price(Symbol),
     PriceHistory(Symbol),
     ReporterPrice(Symbol, Address),
@@ -82,22 +83,28 @@ impl AgriPriceFeedContract {
 
         admin.require_auth();
 
+        if env
+            .storage()
+            .instance()
+            .get(&DataKey::IsReporter(reporter.clone()))
+            .unwrap_or(false)
+        {
+            return Err(OracleError::ReporterAlreadyExists);
+        }
+
         let mut reporters: Vec<Address> = env
             .storage()
             .instance()
             .get(&DataKey::Reporters)
             .unwrap_or(Vec::new(&env));
 
-        for existing in reporters.iter() {
-            if existing == reporter {
-                return Err(OracleError::ReporterAlreadyExists);
-            }
-        }
-
         reporters.push_back(reporter.clone());
         env.storage()
             .instance()
             .set(&DataKey::Reporters, &reporters);
+        env.storage()
+            .instance()
+            .set(&DataKey::IsReporter(reporter.clone()), &true);
         env.storage()
             .instance()
             .extend_ttl(INSTANCE_LIFETIME_THRESHOLD, INSTANCE_BUMP_AMOUNT);
@@ -117,6 +124,15 @@ impl AgriPriceFeedContract {
 
         admin.require_auth();
 
+        let is_rep = env
+            .storage()
+            .instance()
+            .get(&DataKey::IsReporter(reporter.clone()))
+            .unwrap_or(false);
+        if !is_rep {
+            return Err(OracleError::ReporterNotFound);
+        }
+
         let reporters: Vec<Address> = env
             .storage()
             .instance()
@@ -124,20 +140,15 @@ impl AgriPriceFeedContract {
             .unwrap_or(Vec::new(&env));
 
         let mut updated: Vec<Address> = Vec::new(&env);
-        let mut found = false;
-
         for r in reporters.iter() {
-            if r == reporter {
-                found = true;
-            } else {
+            if r != reporter {
                 updated.push_back(r);
             }
         }
 
-        if !found {
-            return Err(OracleError::ReporterNotFound);
-        }
-
+        env.storage()
+            .instance()
+            .remove(&DataKey::IsReporter(reporter.clone()));
         env.storage().instance().set(&DataKey::Reporters, &updated);
         env.storage()
             .instance()
@@ -177,19 +188,15 @@ impl AgriPriceFeedContract {
             return Err(OracleError::InvalidPrice);
         }
 
-        let reporters: Vec<Address> = env
+        if !env.storage().instance().has(&DataKey::Admin) {
+            return Err(OracleError::NotInitialized);
+        }
+
+        let is_authorized = env
             .storage()
             .instance()
-            .get(&DataKey::Reporters)
-            .ok_or(OracleError::NotInitialized)?;
-
-        let mut is_authorized = false;
-        for r in reporters.iter() {
-            if r == reporter {
-                is_authorized = true;
-                break;
-            }
-        }
+            .get(&DataKey::IsReporter(reporter.clone()))
+            .unwrap_or(false);
 
         if !is_authorized {
             return Err(OracleError::Unauthorized);
@@ -377,17 +384,10 @@ impl AgriPriceFeedContract {
 
     /// Verifies if a given address is an authorized reporter
     pub fn is_reporter(env: Env, reporter: Address) -> bool {
-        let reporters: Vec<Address> = env
-            .storage()
+        env.storage()
             .instance()
-            .get(&DataKey::Reporters)
-            .unwrap_or(Vec::new(&env));
-        for r in reporters.iter() {
-            if r == reporter {
-                return true;
-            }
-        }
-        false
+            .get(&DataKey::IsReporter(reporter))
+            .unwrap_or(false)
     }
 
     /// Get oracle administrator address

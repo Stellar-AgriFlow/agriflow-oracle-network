@@ -166,3 +166,31 @@ fn test_update_baseline_rainfall() {
     client.update_baseline_rainfall(&region, &120);
     assert_eq!(client.get_deviation_from_baseline(&region), -80);
 }
+
+#[test]
+fn test_weather_freshness_and_staleness() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let contract_id = env.register(WeatherRiskOracleContract, ());
+    let client = WeatherRiskOracleContractClient::new(&env, &contract_id);
+
+    let admin = Address::generate(&env);
+    let reporter = Address::generate(&env);
+    let region = symbol_short!("NG_KANO");
+
+    client.initialize(&admin);
+    client.add_reporter(&reporter);
+
+    env.ledger().set_timestamp(1_000_000);
+    client.report_weather(&reporter, &region, &40, &100, &60, &false);
+
+    assert_eq!(client.is_fresh(&region, &3600), true);
+    assert_eq!(client.get_metrics_safe(&region, &3600).rainfall_mm, 40);
+
+    // Fast-forward 4000s > 3600s
+    env.ledger().set_timestamp(1_004_000);
+    assert_eq!(client.is_fresh(&region, &3600), false);
+    let err = client.try_get_metrics_safe(&region, &3600);
+    assert_eq!(err.err(), Some(Ok(WeatherOracleError::MetricsStale)));
+}

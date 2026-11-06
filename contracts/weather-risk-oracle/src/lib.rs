@@ -32,6 +32,7 @@ pub struct WeatherMetrics {
 pub enum DataKey {
     Admin,
     Reporters,
+    IsReporter(Address),
     Metrics(Symbol),
 }
 
@@ -76,22 +77,28 @@ impl WeatherRiskOracleContract {
 
         admin.require_auth();
 
+        if env
+            .storage()
+            .instance()
+            .get(&DataKey::IsReporter(reporter.clone()))
+            .unwrap_or(false)
+        {
+            return Err(WeatherOracleError::ReporterAlreadyExists);
+        }
+
         let mut reporters: Vec<Address> = env
             .storage()
             .instance()
             .get(&DataKey::Reporters)
             .unwrap_or(Vec::new(&env));
 
-        for existing in reporters.iter() {
-            if existing == reporter {
-                return Err(WeatherOracleError::ReporterAlreadyExists);
-            }
-        }
-
         reporters.push_back(reporter.clone());
         env.storage()
             .instance()
             .set(&DataKey::Reporters, &reporters);
+        env.storage()
+            .instance()
+            .set(&DataKey::IsReporter(reporter.clone()), &true);
         env.storage()
             .instance()
             .extend_ttl(INSTANCE_LIFETIME_THRESHOLD, INSTANCE_BUMP_AMOUNT);
@@ -112,6 +119,15 @@ impl WeatherRiskOracleContract {
 
         admin.require_auth();
 
+        let is_rep = env
+            .storage()
+            .instance()
+            .get(&DataKey::IsReporter(reporter.clone()))
+            .unwrap_or(false);
+        if !is_rep {
+            return Err(WeatherOracleError::ReporterNotFound);
+        }
+
         let reporters: Vec<Address> = env
             .storage()
             .instance()
@@ -119,20 +135,15 @@ impl WeatherRiskOracleContract {
             .unwrap_or(Vec::new(&env));
 
         let mut updated: Vec<Address> = Vec::new(&env);
-        let mut found = false;
-
         for r in reporters.iter() {
-            if r == reporter {
-                found = true;
-            } else {
+            if r != reporter {
                 updated.push_back(r);
             }
         }
 
-        if !found {
-            return Err(WeatherOracleError::ReporterNotFound);
-        }
-
+        env.storage()
+            .instance()
+            .remove(&DataKey::IsReporter(reporter.clone()));
         env.storage().instance().set(&DataKey::Reporters, &updated);
         env.storage()
             .instance()
@@ -166,6 +177,11 @@ impl WeatherRiskOracleContract {
             env.storage()
                 .persistent()
                 .set(&DataKey::Metrics(region.clone()), &metrics);
+            env.storage().persistent().extend_ttl(
+                &DataKey::Metrics(region.clone()),
+                INSTANCE_LIFETIME_THRESHOLD,
+                INSTANCE_BUMP_AMOUNT,
+            );
         }
 
         env.events()
@@ -190,25 +206,25 @@ impl WeatherRiskOracleContract {
             return Err(WeatherOracleError::InvalidMetrics);
         }
 
-        let reporters: Vec<Address> = env
-            .storage()
-            .instance()
-            .get(&DataKey::Reporters)
-            .ok_or(WeatherOracleError::NotInitialized)?;
-
-        let mut is_authorized = false;
-        for r in reporters.iter() {
-            if r == reporter {
-                is_authorized = true;
-                break;
-            }
+        if !env.storage().instance().has(&DataKey::Admin) {
+            return Err(WeatherOracleError::NotInitialized);
         }
 
-        if !is_authorized {
+        if !Self::is_reporter(env.clone(), reporter.clone()) {
             return Err(WeatherOracleError::Unauthorized);
         }
 
         let timestamp = env.ledger().timestamp();
+
+        if let Some(existing) = env
+            .storage()
+            .persistent()
+            .get::<_, WeatherMetrics>(&DataKey::Metrics(region.clone()))
+        {
+            if timestamp < existing.timestamp {
+                return Err(WeatherOracleError::MetricsStale);
+            }
+        }
 
         let metrics = WeatherMetrics {
             rainfall_mm,
@@ -222,6 +238,11 @@ impl WeatherRiskOracleContract {
         env.storage()
             .persistent()
             .set(&DataKey::Metrics(region.clone()), &metrics);
+        env.storage().persistent().extend_ttl(
+            &DataKey::Metrics(region.clone()),
+            INSTANCE_LIFETIME_THRESHOLD,
+            INSTANCE_BUMP_AMOUNT,
+        );
         env.storage()
             .instance()
             .extend_ttl(INSTANCE_LIFETIME_THRESHOLD, INSTANCE_BUMP_AMOUNT);
@@ -240,6 +261,25 @@ impl WeatherRiskOracleContract {
             .persistent()
             .get(&DataKey::Metrics(region))
             .ok_or(WeatherOracleError::RegionNotFound)
+    }
+
+    /// Fetch latest recorded weather metrics with staleness validation
+    pub fn get_metrics_safe(
+        env: Env,
+        region: Symbol,
+        max_staleness_seconds: u64,
+    ) -> Result<WeatherMetrics, WeatherOracleError> {
+        let metrics = Self::get_metrics(env.clone(), region)?;
+        let current_time = env.ledger().timestamp();
+        if current_time > metrics.timestamp + max_staleness_seconds {
+            return Err(WeatherOracleError::MetricsStale);
+        }
+        Ok(metrics)
+    }
+
+    /// Check if regional weather metrics are fresh within allowed age
+    pub fn is_fresh(env: Env, region: Symbol, max_age_seconds: u64) -> bool {
+        Self::get_metrics_safe(env, region, max_age_seconds).is_ok()
     }
 
     /// Check if regional drought index meets or exceeds parametric insurance payout threshold
@@ -291,17 +331,10 @@ impl WeatherRiskOracleContract {
 
     /// Verifies if a given address is an authorized weather reporter
     pub fn is_reporter(env: Env, reporter: Address) -> bool {
-        let reporters: Vec<Address> = env
-            .storage()
+        env.storage()
             .instance()
-            .get(&DataKey::Reporters)
-            .unwrap_or(Vec::new(&env));
-        for r in reporters.iter() {
-            if r == reporter {
-                return true;
-            }
-        }
-        false
+            .get(&DataKey::IsReporter(reporter))
+            .unwrap_or(false)
     }
 
     /// Fetch admin address
