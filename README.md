@@ -360,7 +360,7 @@ The oracle relayer daemon (`services/oracle-relayer`) provides native Prometheus
 ```bash
 cargo test --manifest-path contracts/Cargo.toml --workspace --verbose
 ```
-*Results: 17 passed across `agri-price-feed` (6 tests), `weather-risk-oracle` (6 tests), and `oracle-staking` (5 tests).*
+*Results: 20 passed across `agri-price-feed` (7 tests), `weather-risk-oracle` (7 tests), and `oracle-staking` (6 tests).*
 
 ### 2. Monorepo TypeScript & Integration Tests (Vitest)
 ```bash
