@@ -35,15 +35,15 @@ fn test_weather_oracle_lifecycle() {
     assert_eq!(metrics.rainfall_mm, 12);
     assert_eq!(metrics.historical_avg_rainfall_mm, 120);
     assert_eq!(metrics.drought_index, 88);
-    assert_eq!(metrics.extreme_temp_flag, true);
+    assert!(metrics.extreme_temp_flag);
     assert_eq!(metrics.timestamp, 1_700_000_100);
 
     // 5. Test Drought Trigger
     let is_triggered_at_80 = client.check_drought_trigger(&region, &80);
-    assert_eq!(is_triggered_at_80, true);
+    assert!(is_triggered_at_80);
 
     let is_triggered_at_90 = client.check_drought_trigger(&region, &90);
-    assert_eq!(is_triggered_at_90, false);
+    assert!(!is_triggered_at_90);
 }
 
 #[test]
@@ -90,8 +90,8 @@ fn test_flood_trigger() {
     // Report 250mm torrential rainfall vs 80mm historical average
     client.report_weather(&reporter, &region, &250, &80, &5, &false);
 
-    assert_eq!(client.check_flood_trigger(&region, &200), true);
-    assert_eq!(client.check_flood_trigger(&region, &300), false);
+    assert!(client.check_flood_trigger(&region, &200));
+    assert!(!client.check_flood_trigger(&region, &300));
 }
 
 #[test]
@@ -185,12 +185,12 @@ fn test_weather_freshness_and_staleness() {
     env.ledger().set_timestamp(1_000_000);
     client.report_weather(&reporter, &region, &40, &100, &60, &false);
 
-    assert_eq!(client.is_fresh(&region, &3600), true);
+    assert!(client.is_fresh(&region, &3600));
     assert_eq!(client.get_metrics_safe(&region, &3600).rainfall_mm, 40);
 
     // Fast-forward 4000s > 3600s
     env.ledger().set_timestamp(1_004_000);
-    assert_eq!(client.is_fresh(&region, &3600), false);
+    assert!(!client.is_fresh(&region, &3600));
     let err = client.try_get_metrics_safe(&region, &3600);
     assert_eq!(err.err(), Some(Ok(WeatherOracleError::MetricsStale)));
 }

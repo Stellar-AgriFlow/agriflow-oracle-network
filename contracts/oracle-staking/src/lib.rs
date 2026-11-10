@@ -410,14 +410,41 @@ impl OracleStakingContract {
             .get(&op_key)
             .ok_or(StakingError::OperatorNotFound)?;
 
-        let actual_slash = if info.staked_amount < slash_amount {
-            info.staked_amount
-        } else {
-            slash_amount
-        };
+        let mut remaining_slash = slash_amount;
+        let mut actual_slash = 0i128;
 
-        info.staked_amount -= actual_slash;
+        if info.staked_amount > 0 {
+            let from_stake = if info.staked_amount <= remaining_slash {
+                info.staked_amount
+            } else {
+                remaining_slash
+            };
+            info.staked_amount -= from_stake;
+            remaining_slash -= from_stake;
+            actual_slash += from_stake;
+        }
+
+        if remaining_slash > 0 && info.unbonding_amount > 0 {
+            let from_unbonding = if info.unbonding_amount <= remaining_slash {
+                info.unbonding_amount
+            } else {
+                remaining_slash
+            };
+            info.unbonding_amount -= from_unbonding;
+            actual_slash += from_unbonding;
+        }
+
         info.total_slashed += actual_slash;
+
+        if info.is_token_staked && actual_slash > 0 {
+            if let Some(token) = Self::get_stake_token(env.clone()) {
+                soroban_sdk::token::Client::new(&env, &token).transfer(
+                    &env.current_contract_address(),
+                    &admin,
+                    &actual_slash,
+                );
+            }
+        }
 
         let min_stake: i128 = env
             .storage()
@@ -440,7 +467,7 @@ impl OracleStakingContract {
             .instance()
             .get(&DataKey::TotalStaked)
             .unwrap_or(0);
-        total_staked -= actual_slash;
+        total_staked = total_staked.saturating_sub(actual_slash);
         env.storage()
             .instance()
             .set(&DataKey::TotalStaked, &total_staked);

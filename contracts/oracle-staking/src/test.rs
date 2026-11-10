@@ -24,11 +24,11 @@ fn test_staking_lifecycle() {
     // 2. Register operator with 10,000 stake (exceeds 5,000 min)
     client.register_operator(&operator, &10_000);
     assert_eq!(client.get_total_staked(), 10_000);
-    assert_eq!(client.is_operator_eligible(&operator), true);
+    assert!(client.is_operator_eligible(&operator));
 
     let info = client.get_operator(&operator).unwrap();
     assert_eq!(info.staked_amount, 10_000);
-    assert_eq!(info.is_active, true);
+    assert!(info.is_active);
 
     // 3. Deposit additional stake
     client.deposit_stake(&operator, &5_000);
@@ -98,8 +98,8 @@ fn test_slashing_and_deactivation() {
     assert_eq!(info.staked_amount, 4_000);
     assert_eq!(info.total_slashed, 2_000);
     // 4,000 < 5,000 min_stake -> operator becomes inactive!
-    assert_eq!(info.is_active, false);
-    assert_eq!(client.is_operator_eligible(&operator), false);
+    assert!(!info.is_active);
+    assert!(!client.is_operator_eligible(&operator));
     assert_eq!(client.get_total_staked(), 4_000);
 }
 
@@ -150,7 +150,7 @@ fn test_pause_circuit_breaker() {
 
     client.unpause();
     client.register_operator(&operator, &10_000);
-    assert_eq!(client.is_operator_eligible(&operator), true);
+    assert!(client.is_operator_eligible(&operator));
 }
 
 #[test]
@@ -182,7 +182,7 @@ fn test_staking_token_transfers() {
     assert_eq!(token_client.balance(&contract_id), 10_000);
 
     let info = client.get_operator(&operator).unwrap();
-    assert_eq!(info.is_token_staked, true);
+    assert!(info.is_token_staked);
 
     // Unbond and withdraw
     env.ledger().set_sequence_number(100);
@@ -192,4 +192,35 @@ fn test_staking_token_transfers() {
 
     assert_eq!(token_client.balance(&operator), 45_000);
     assert_eq!(token_client.balance(&contract_id), 5_000);
+}
+
+#[test]
+fn test_slashing_unbonding_stake_prevents_escape() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let contract_id = env.register(OracleStakingContract, ());
+    let client = OracleStakingContractClient::new(&env, &contract_id);
+
+    let admin = Address::generate(&env);
+    let operator = Address::generate(&env);
+
+    client.initialize(&admin, &5_000, &100);
+    client.register_operator(&operator, &10_000);
+
+    // Operator requests unbonding for 8,000, leaving only 2,000 in active stake
+    client.request_unbond(&operator, &8_000);
+    let info = client.get_operator(&operator).unwrap();
+    assert_eq!(info.staked_amount, 2_000);
+    assert_eq!(info.unbonding_amount, 8_000);
+
+    // Admin slashes 5,000 (exceeds 2,000 active stake -> slashes 2,000 active + 3,000 unbonding)
+    let slashed = client.slash_operator(&operator, &5_000, &symbol_short!("dev_rep"));
+    assert_eq!(slashed, 5_000);
+
+    let updated = client.get_operator(&operator).unwrap();
+    assert_eq!(updated.staked_amount, 0);
+    assert_eq!(updated.unbonding_amount, 5_000); // 8,000 - 3,000
+    assert_eq!(updated.total_slashed, 5_000);
+    assert!(!updated.is_active);
 }

@@ -23,9 +23,9 @@ If you believe you have discovered a security vulnerability in:
 
 **Please DO NOT open a public issue.** Instead, submit your report securely to our security coordination team:
 
-- **Email**: `security@stellar-agriflow.org`
+- **Lead Maintainer & Security Contact**: `LaPoshBaby@users.noreply.github.com`
 - **PGP Key**: Fingerprint `9A2F 48B1 7D0C E63F 851A 42CB 7E39 01FD`
-- **Lead Maintainer**: `LaPoshBaby@users.noreply.github.com`
+- **GitHub Security**: Submit a confidential report directly via GitHub Private Vulnerability Reporting under repository Security.
 
 ### What to Include in Your Report
 1. Detailed description of the vulnerability and attack vector.

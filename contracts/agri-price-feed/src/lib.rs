@@ -310,7 +310,7 @@ impl AgriPriceFeedContract {
         }
 
         let mid = n / 2;
-        if n % 2 == 0 {
+        if n.is_multiple_of(2) {
             let p1 = sorted.get(mid - 1).unwrap();
             let p2 = sorted.get(mid).unwrap();
             Ok((p1 + p2) / 2)
