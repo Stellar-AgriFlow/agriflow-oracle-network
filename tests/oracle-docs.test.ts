@@ -54,4 +54,19 @@ describe('Oracle Consensus & Operator Documentation', () => {
     expect(content).toContain('agriflow-node register');
     expect(content).toContain('http://localhost:9090/healthz');
   });
+
+  it('validates EVENTS.md documents all emitted contract event symbols and topics', () => {
+    const filePath = path.join(docsDir, 'EVENTS.md');
+    expect(fs.existsSync(filePath)).toBe(true);
+
+    const content = fs.readFileSync(filePath, 'utf8');
+    expect(content).toContain('stk_reg');
+    expect(content).toContain('stk_dep');
+    expect(content).toContain('unb_req');
+    expect(content).toContain('price_upd');
+    expect(content).toContain('w_update');
+    expect(content).toContain('w_init');
+    expect(content).toContain('stk_slh');
+    expect(content).toContain('AgriPriceFeedContract Events');
+  });
 });
