@@ -17,4 +17,10 @@ describe('GitHub Actions CI/CD Workflows', () => {
     expect(content).toContain('pnpm audit');
     expect(content).toContain('schedule:');
   });
+
+  it('validates oracle-ci.yml enforces cargo fmt check on contracts', () => {
+    const content = fs.readFileSync(path.join(workflowsDir, 'oracle-ci.yml'), 'utf8');
+    expect(content).toContain('cargo fmt');
+    expect(content).toContain('--all --check');
+  });
 });
