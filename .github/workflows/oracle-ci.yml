@@ -17,7 +17,11 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
+          components: rustfmt
           targets: wasm32-unknown-unknown
+
+      - name: Check Formatting
+        run: cargo fmt --manifest-path contracts/Cargo.toml --all --check
 
       - name: Run Contract Tests
         run: cargo test --manifest-path contracts/Cargo.toml --workspace
