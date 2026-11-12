@@ -51,6 +51,67 @@ Ensure you have the following toolchains installed:
 
 ---
 
+## 🛠️ Local Validator Node Setup Guide
+
+Contributors and node operators can run an AgriFlow Oracle validator reporter locally to test attestation feeds, telemetry scraping, and Soroban contract submissions against Stellar Testnet or a local sandbox.
+
+### 1. Prerequisites
+- **Rust**: `rustc` and `cargo` >= 1.79 with target `wasm32-unknown-unknown`
+- **Node.js & pnpm**: Node.js >= 20.0 and `pnpm` >= 9.0
+- **Docker & Docker Compose**: v2.20+ (for background services and Prometheus scraping)
+- **Stellar CLI**:
+  ```bash
+  cargo install --locked stellar-cli --features opt
+  ```
+
+### 2. Configure Relayer Environment
+Create `.env` inside `services/oracle-relayer/` or root:
+```bash
+STELLAR_NETWORK=testnet
+STELLAR_RPC_URL=https://soroban-testnet.stellar.org
+REPORTER_SECRET_KEY=S... # Secret seed of funded testnet reporter account
+PRICE_FEED_CONTRACT_ID=CDE2KRZ2ZYZ2B7RT4BA4IPMTHBMUROWSSBCG2RGXM6MDS5GGAKR3GEI7
+WEATHER_ORACLE_CONTRACT_ID=CCC6PHP7LADEVOW4AOLSRXHC6WOK2LW3ZJQX4EEYKR42GR3HXNSFIPHN
+METRICS_PORT=9090
+UPDATE_INTERVAL_MS=60000
+```
+
+### 3. Register Validator Node via node-cli
+Use `@agriflow/node-cli` to generate operator keys and stake initial XLM:
+```bash
+# Register operator keypair and stake
+pnpm --filter @agriflow/node-cli dev register --key <OPERATOR_PUBKEY> --stake 10000
+
+# Verify active node status
+pnpm --filter @agriflow/node-cli dev status --key <OPERATOR_PUBKEY>
+```
+
+### 4. Start the Oracle Relayer Daemon
+Run the relayer service directly or using Docker:
+
+**Direct execution via pnpm:**
+```bash
+pnpm --filter @agriflow/oracle-relayer dev
+```
+
+**Docker Compose execution:**
+```bash
+docker compose -f docker/docker-compose.yml up -d
+```
+
+### 5. Verify Health and Telemetry Metrics
+Verify that the relayer health endpoint returns status `HEALTHY`:
+```bash
+curl http://localhost:9090/health
+```
+
+Prometheus metrics can be inspected at:
+```bash
+curl http://localhost:9090/metrics
+```
+
+---
+
 ## 📁 Repository Structure
 
 ```

@@ -54,4 +54,15 @@ describe('Oracle Consensus & Operator Documentation', () => {
     expect(content).toContain('agriflow-node register');
     expect(content).toContain('http://localhost:9090/healthz');
   });
+
+  it('validates CONTRIBUTING.md documents local validator setup, prerequisites, and relayer commands', () => {
+    const filePath = path.resolve(__dirname, '../CONTRIBUTING.md');
+    expect(fs.existsSync(filePath)).toBe(true);
+
+    const content = fs.readFileSync(filePath, 'utf8');
+    expect(content).toContain('Local Validator Node Setup Guide');
+    expect(content).toContain('pnpm --filter @agriflow/oracle-relayer dev');
+    expect(content).toContain('pnpm --filter @agriflow/node-cli dev register');
+    expect(content).toContain('http://localhost:9090/health');
+  });
 });
