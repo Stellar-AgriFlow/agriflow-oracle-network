@@ -56,5 +56,23 @@ describe('NodeManager & CLI', () => {
 
     const version = runCli(['version']);
     expect(version).toContain('agriflow-node v0.1.0');
+    expect(version).toContain('commit:');
+    expect(version).toContain('built:');
+    expect(version).toContain('network:');
+  });
+
+  it('supports --version, -v and --json flags with commit and network metadata', () => {
+    const longFlag = runCli(['--version']);
+    expect(longFlag).toContain('agriflow-node v0.1.0');
+
+    const shortFlag = runCli(['-v']);
+    expect(shortFlag).toContain('agriflow-node v0.1.0');
+
+    const jsonOutput = runCli(['version', '--json']);
+    const parsed = JSON.parse(jsonOutput);
+    expect(parsed.version).toBe('0.1.0');
+    expect(typeof parsed.commit).toBe('string');
+    expect(typeof parsed.buildTimestamp).toBe('string');
+    expect(parsed.network).toBe('testnet');
   });
 });
