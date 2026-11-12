@@ -17,4 +17,14 @@ describe('GitHub Actions CI/CD Workflows', () => {
     expect(content).toContain('pnpm audit');
     expect(content).toContain('schedule:');
   });
+
+  it('validates workflows enforce clippy with -D warnings', () => {
+    const ciContent = fs.readFileSync(path.join(workflowsDir, 'ci.yml'), 'utf8');
+    expect(ciContent).toContain('cargo clippy');
+    expect(ciContent).toContain('-D warnings');
+
+    const oracleContent = fs.readFileSync(path.join(workflowsDir, 'oracle-ci.yml'), 'utf8');
+    expect(oracleContent).toContain('cargo clippy');
+    expect(oracleContent).toContain('-D warnings');
+  });
 });
