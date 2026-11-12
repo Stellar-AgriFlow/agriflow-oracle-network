@@ -16,6 +16,7 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
+          components: clippy
           targets: wasm32-unknown-unknown
 
       - name: Rust Cache
@@ -25,6 +26,9 @@ jobs:
 
       - name: Format Check
         run: cargo fmt --manifest-path contracts/Cargo.toml --all -- --check
+
+      - name: Clippy Lint
+        run: cargo clippy --manifest-path contracts/Cargo.toml --workspace --all-targets -- -D warnings
 
       - name: Run Contract Tests
         run: cargo test --manifest-path contracts/Cargo.toml --workspace --verbose
